@@ -19,6 +19,7 @@ export const queryKeys = {
   nextFree: ['barber', 'next-free'] as const,
   adminServices: ['admin', 'services'] as const,
   adminProducts: ['admin', 'products'] as const,
+  adminBarbers: ['admin', 'barbers'] as const,
 }
 
 export function createQueryClient(): QueryClient {

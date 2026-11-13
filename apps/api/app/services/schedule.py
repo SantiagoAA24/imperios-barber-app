@@ -38,7 +38,7 @@ MAX_BLOCKS_PER_DAY = 4
 # --- conflictos -------------------------------------------------------------------------------
 
 
-def _upcoming_booked(
+def upcoming_booked(
     session: Session, business: Business, barber: Barber, now: datetime
 ) -> list[tuple[Appointment, Client, Service]]:
     rows = session.execute(
@@ -56,7 +56,7 @@ def _upcoming_booked(
     return [(a, c, s) for a, c, s in rows]
 
 
-def _conflict(
+def conflict_out(
     business: Business, appointment: Appointment, client: Client, service: Service
 ) -> ConflictOut:
     tz = ZoneInfo(business.timezone)
@@ -79,7 +79,7 @@ def schedule_conflicts(
     """Citas reservadas que no caben enteras en algún tramo del horario dado."""
     tz = ZoneInfo(business.timezone)
     out: list[ConflictOut] = []
-    for appointment, client, service in _upcoming_booked(session, business, barber, now):
+    for appointment, client, service in upcoming_booked(session, business, barber, now):
         start = appointment.starts_at.astimezone(tz)
         end = appointment.ends_at.astimezone(tz)
         fits = end.date() == start.date() and any(
@@ -87,7 +87,7 @@ def schedule_conflicts(
             for weekday, seg_start, seg_end in blocks
         )
         if not fits:
-            out.append(_conflict(business, appointment, client, service))
+            out.append(conflict_out(business, appointment, client, service))
     return out
 
 
@@ -100,8 +100,8 @@ def time_off_conflicts(
     now: datetime,
 ) -> list[ConflictOut]:
     return [
-        _conflict(business, a, c, s)
-        for a, c, s in _upcoming_booked(session, business, barber, now)
+        conflict_out(business, a, c, s)
+        for a, c, s in upcoming_booked(session, business, barber, now)
         if a.starts_at < ends_at and starts_at < a.ends_at
     ]
 

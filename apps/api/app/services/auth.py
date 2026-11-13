@@ -12,6 +12,7 @@ from app.core.errors import ApiError
 from app.core.security import (
     burn_password_check,
     create_access_token,
+    hash_password,
     hash_refresh_token,
     new_refresh_token,
     verify_password,
@@ -116,5 +117,33 @@ def _revoke_family(session: Session, family_id: uuid.UUID, now: datetime) -> Non
     session.execute(
         update(RefreshToken)
         .where(RefreshToken.family_id == family_id, RefreshToken.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+
+
+def change_password(
+    session: Session, user: User, settings: Settings, current: str, new: str
+) -> IssuedSession:
+    """Cambia la clave, cierra las demás sesiones y abre una nueva."""
+    if not verify_password(user.password_hash, current):
+        raise ApiError(
+            403, "invalid_current_password", "La clave actual no es correcta.", {"field": "current"}
+        )
+    if new == current:
+        raise ApiError(422, "password_unchanged", "La clave nueva debe ser distinta de la actual.")
+    now = datetime.now(UTC)
+    user.password_hash = hash_password(new)
+    user.must_change_password = False
+    revoke_sessions(session, user.id, now)
+    issued, _ = _issue(session, user, settings, uuid.uuid4(), now)
+    session.commit()
+    return issued
+
+
+def revoke_sessions(session: Session, user_id: uuid.UUID, now: datetime) -> None:
+    """Revoca todos los refresh tokens vigentes del usuario (no hace commit)."""
+    session.execute(
+        update(RefreshToken)
+        .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
         .values(revoked_at=now)
     )

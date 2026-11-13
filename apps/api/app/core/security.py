@@ -116,8 +116,11 @@ def get_settings_dep(request: Request) -> Settings:
     return settings
 
 
-def current_user(request: Request, session: DbSession, business: CurrentBusiness) -> User:
-    """Usuario del access token. El ``business_id`` que manda es el del token, no el del cliente."""
+def session_user(request: Request, session: DbSession, business: CurrentBusiness) -> User:
+    """Usuario del access token, aunque deba cambiar su clave (solo /auth/me y change-password).
+
+    El ``business_id`` que manda es el del token, no el del cliente.
+    """
     token = request.cookies.get(ACCESS_COOKIE)
     if not token:
         raise ApiError(401, "not_authenticated", "Inicia sesión para continuar.")
@@ -137,6 +140,18 @@ def current_user(request: Request, session: DbSession, business: CurrentBusiness
     return user
 
 
+def current_user(user: Annotated[User, Depends(session_user)]) -> User:
+    """Como ``session_user``, pero con clave temporal pendiente no deja usar nada más."""
+    if user.must_change_password:
+        raise ApiError(
+            403,
+            "password_change_required",
+            "Debes cambiar tu clave temporal antes de continuar.",
+        )
+    return user
+
+
+SessionUser = Annotated[User, Depends(session_user)]
 CurrentUser = Annotated[User, Depends(current_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings_dep)]
 

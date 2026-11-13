@@ -1,6 +1,8 @@
 """Esquemas de /admin: catálogo editable (servicios y, más adelante, productos y barberos)."""
 
+import re
 import uuid
+from datetime import datetime
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
@@ -165,3 +167,79 @@ class ProductPatchIn(_ProductMixin):
 
     def sent(self) -> dict[str, object]:
         return {k: getattr(self, k) for k in self.model_fields_set}
+
+
+# --- barberos ---------------------------------------------------------------------------------
+
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
+DisplayName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=40)]
+
+
+class AdminBarberOut(BaseModel):
+    id: uuid.UUID
+    display_name: str
+    email: str
+    visible_in_booking: bool
+    active: bool
+    must_change_password: bool
+
+
+class AdminBarberListOut(BaseModel):
+    items: list[AdminBarberOut]
+
+
+class BarberCreateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    display_name: DisplayName
+    email: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True, max_length=254)]
+    visible_in_booking: bool = True
+
+    @field_validator("email")
+    @classmethod
+    def _valid_email(cls, value: str) -> str:
+        if not _EMAIL.match(value):
+            raise ValueError("correo no válido")
+        return value
+
+
+class BarberPatchIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    display_name: DisplayName | None = None
+    visible_in_booking: bool | None = None
+    active: bool | None = None
+
+    @field_validator("display_name", "visible_in_booking", "active")
+    @classmethod
+    def _not_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("no puede ser null")
+        return value
+
+    def sent(self) -> dict[str, object]:
+        return {k: getattr(self, k) for k in self.model_fields_set}
+
+
+class BarberCreatedOut(BaseModel):
+    barber: AdminBarberOut
+    # Se muestra una sola vez: ni se guarda en claro ni se puede volver a pedir.
+    temporary_password: str
+
+
+class TemporaryPasswordOut(BaseModel):
+    temporary_password: str
+
+
+class BarberConflictOut(BaseModel):
+    appointment_id: uuid.UUID
+    starts_at: datetime
+    ends_at: datetime
+    client_name: str
+    service_name: str
+
+
+class BarberUpdatedOut(BaseModel):
+    barber: AdminBarberOut
+    # Citas futuras en estado booked del barbero desactivado: no se cancelan.
+    conflicts: list[BarberConflictOut]

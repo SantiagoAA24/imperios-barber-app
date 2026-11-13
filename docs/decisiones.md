@@ -165,3 +165,17 @@ Decisión:
 - **Diferencias con el diseño:** el diseño de productos (`admin-productos.dc.html`) tiene categorías y fotos subidas; `product` no tiene categoría y no hay subida, así que se edita un enlace https a la foto.
 Motivo: cerrar los huecos sin cambiar el alcance del PR.
 Impacto: ninguno en otras pantallas.
+
+## 2026-11-13 · Decisiones de la fase 7, PR 3 (Barberos)
+Contexto: tercera pantalla del admin; incluye migración y el cambio de clave obligatorio.
+Decisión:
+- **Rutas** (solo admin, filtradas por `business_id`): `GET/POST /admin/barbers`, `PATCH /admin/barbers/{id}`, `POST /admin/barbers/{id}/reset-password`; y `POST /auth/change-password {current, new}` (sesión; `new` mínimo 10 caracteres).
+- **Migración 0003:** `user.must_change_password` (boolean, `false` por defecto).
+- **Clave temporal:** 12 caracteres con `secrets` (alfabeto sin `0 O 1 l I`, siempre con letra y dígito). Solo se guarda el hash argon2; se devuelve una vez en el `POST` y en el `reset-password` y no vuelve a salir de ninguna ruta (hay una prueba que lo busca en la lista y en la fila completa de `user`). El alta pide nombre y correo; `user.name` sigue a `display_name`.
+- **Bloqueo por clave temporal:** `current_user` (del que cuelgan `require_role`, `/me/*` y `/admin/*`) responde 403 `password_change_required` mientras `must_change_password` sea true. Se permiten además `GET /auth/me` (la web necesita saber que debe pedir el cambio), `/auth/refresh` y `/auth/logout`, que no usan `current_user`. Cambiar la clave revoca todas las sesiones y abre una nueva; reiniciarla también revoca las del barbero.
+- **Desactivar:** `active=false` en `barber` y en su `user` (no puede ingresar ni aparece al agendar); no se borra ni cancela ninguna cita. La respuesta del `PATCH` trae `conflicts[]` con sus citas futuras `booked` (reutiliza las consultas de `services/schedule.py`, ahora públicas). Reactivar devuelve `conflicts: []`.
+- **Frontend:** `/cambiar-clave` (pública, redirige a `/ingresar` sin sesión y al panel si no hay clave pendiente); `RutaProtegida` manda ahí a quien tenga clave temporal. La clave se muestra en un aviso con «Copiar» y «No volverás a ver esta clave.»; al cerrarlo («Ya la copié») sale de la memoria de la pantalla.
+- **Pendiente conocido:** un barbero nuevo no tiene horario: no aparece con cupos hasta que configure «Mi horario». La pantalla no lo avisa todavía.
+- **Diferencias con el diseño (`admin-barberos.dc.html`):** tabla con interruptores «Aparece al agendar» y «Activo» y botón «Reiniciar clave»; sin el editor de horario semanal por barbero (lo hace cada barbero en «Mi horario»).
+Motivo: cerrar los huecos sin cambiar el alcance del PR.
+Impacto: la fase 8 puede reutilizar `/cambiar-clave` para recuperación de clave.

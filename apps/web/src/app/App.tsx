@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { AppointmentPage } from '../features/appointment/AppointmentPage'
+import { ChangePasswordPage } from '../features/auth/ChangePasswordPage'
 import { Login } from '../features/auth/Login'
 import { BookingPage } from '../features/booking/BookingPage'
 import { CatalogPage } from '../features/catalog/CatalogPage'
@@ -44,6 +45,7 @@ export function AppRoutes() {
         <Route path="cita/:token" element={<AppointmentPage />} />
         <Route path="productos" element={<CatalogPage />} />
         <Route path="ingresar" element={<Login />} />
+        <Route path="cambiar-clave" element={<ChangePasswordPage />} />
         <Route path="privacidad" element={<Privacy />} />
         <Route path="offline" element={<Offline />} />
         <Route path="*" element={<NotFound />} />

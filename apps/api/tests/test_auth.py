@@ -43,8 +43,13 @@ async def test_login_correcto_fija_las_dos_cookies_httponly_lax(
     u = make_user(session, make_business(session), UserRole.admin, "ana@imperio.test")
     r = await login(client, "  ANA@imperio.test ")
     assert r.status_code == 200
-    assert r.json() == {"id": str(u.id), "name": u.name, "role": "admin"}
-    assert "password" not in r.text
+    assert r.json() == {
+        "id": str(u.id),
+        "name": u.name,
+        "role": "admin",
+        "must_change_password": False,
+    }
+    assert "password_hash" not in r.text and '"password"' not in r.text
     access, refresh = cookie_header(r, "access_token"), cookie_header(r, "refresh_token")
     for c in (access, refresh):
         assert "HttpOnly" in c
@@ -104,7 +109,12 @@ async def test_me_devuelve_el_usuario_o_401_sin_sesion(
     assert anon.json()["code"] == "not_authenticated"
     await login(client, "bar@imperio.test")
     r = await client.get(f"{API}/auth/me")
-    assert r.json() == {"id": str(u.id), "name": u.name, "role": "barber"}
+    assert r.json() == {
+        "id": str(u.id),
+        "name": u.name,
+        "role": "barber",
+        "must_change_password": False,
+    }
 
 
 async def test_permisos_por_rol(client: AsyncClient, session: Session) -> None:

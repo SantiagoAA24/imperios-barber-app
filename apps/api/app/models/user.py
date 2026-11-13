@@ -25,3 +25,5 @@ class User(IdTimestampMixin, Base):
     email: Mapped[str] = mapped_column(String)
     password_hash: Mapped[str] = mapped_column(String)
     active: Mapped[bool] = mapped_column(server_default=text("true"))
+    # Clave temporal entregada por el admin: solo se puede cambiarla hasta que se cambie.
+    must_change_password: Mapped[bool] = mapped_column(server_default=text("false"))

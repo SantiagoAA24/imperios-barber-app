@@ -5,10 +5,10 @@ from app.core.config import Settings
 from app.core.db import DbSession
 from app.core.errors import ApiError, error_response
 from app.core.ratelimit import LOGIN_LIMIT, hit_login_email, limiter
-from app.core.security import ACCESS_COOKIE, REFRESH_COOKIE, CurrentUser, SettingsDep
+from app.core.security import ACCESS_COOKIE, REFRESH_COOKIE, SessionUser, SettingsDep
 from app.core.tenant import CurrentBusiness
 from app.models import User
-from app.schemas.auth import LoginRequest, UserOut
+from app.schemas.auth import ChangePasswordIn, LoginRequest, UserOut
 from app.schemas.errors import ErrorBody
 from app.services import auth as auth_service
 
@@ -113,5 +113,19 @@ def logout(
 
 
 @router.get("/me", response_model=UserOut)
-def me(user: CurrentUser) -> User:
+def me(user: SessionUser) -> User:
     return user
+
+
+@router.post("/change-password", response_model=UserOut)
+def change_password(
+    body: ChangePasswordIn,
+    response: Response,
+    user: SessionUser,
+    session: DbSession,
+    settings: SettingsDep,
+) -> User:
+    """Único endpoint (junto con /auth/me) que sirve con una clave temporal pendiente."""
+    issued = auth_service.change_password(session, user, settings, body.current, body.new)
+    _set_session_cookies(response, settings, issued)
+    return issued.user

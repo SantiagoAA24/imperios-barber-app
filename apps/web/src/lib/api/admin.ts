@@ -5,6 +5,10 @@ import { unwrap } from './hooks'
 import { queryKeys } from './queryClient'
 import type {
   AdminProduct,
+  BarberCreateBody,
+  BarberCreated,
+  BarberPatchBody,
+  BarberUpdated,
   AdminProductList,
   AdminService,
   AdminServiceList,
@@ -144,5 +148,60 @@ export function useReorderProducts() {
       client.setQueryData(queryKeys.adminProducts, list)
       after()
     },
+  })
+}
+
+// --- barberos ---------------------------------------------------------------------------------
+
+export function useAdminBarbers() {
+  return useQuery({
+    queryKey: queryKeys.adminBarbers,
+    queryFn: () => unwrap(api.GET('/api/v1/admin/barbers')),
+    staleTime: 0,
+  })
+}
+
+function useAfterBarberChange() {
+  const client = useQueryClient()
+  return () => {
+    void client.invalidateQueries({ queryKey: queryKeys.adminBarbers })
+    // Quién aparece al agendar y con quién hay horarios cambia en la web pública.
+    void client.invalidateQueries({ queryKey: queryKeys.barbers })
+    void client.invalidateQueries({ queryKey: queryKeys.availability })
+  }
+}
+
+export function useCreateBarber() {
+  const after = useAfterBarberChange()
+  return useMutation<BarberCreated, ApiError, BarberCreateBody>({
+    mutationFn: (body) => unwrap(api.POST('/api/v1/admin/barbers', { body })),
+    onSuccess: after,
+  })
+}
+
+export function useUpdateBarber() {
+  const after = useAfterBarberChange()
+  return useMutation<BarberUpdated, ApiError, { id: string; body: BarberPatchBody }>({
+    mutationFn: ({ id, body }) =>
+      unwrap(
+        api.PATCH('/api/v1/admin/barbers/{barber_id}', {
+          params: { path: { barber_id: id } },
+          body,
+        }),
+      ),
+    onSuccess: after,
+  })
+}
+
+export function useResetBarberPassword() {
+  const after = useAfterBarberChange()
+  return useMutation<{ temporary_password: string }, ApiError, string>({
+    mutationFn: (id) =>
+      unwrap(
+        api.POST('/api/v1/admin/barbers/{barber_id}/reset-password', {
+          params: { path: { barber_id: id } },
+        }),
+      ),
+    onSuccess: after,
   })
 }

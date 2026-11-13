@@ -2,24 +2,32 @@ import uuid
 
 from fastapi import APIRouter, Depends, Response
 
+from app.core.clock import Now
 from app.core.db import DbSession
 from app.core.security import AdminUser
+from app.core.tenant import CurrentBusiness
 from app.routers.booking import no_store
 from app.schemas.admin import (
+    AdminBarberListOut,
     AdminProductListOut,
     AdminProductOut,
     AdminServiceListOut,
     AdminServiceOut,
+    BarberCreatedOut,
+    BarberCreateIn,
+    BarberPatchIn,
+    BarberUpdatedOut,
     OrderIn,
     ProductCreateIn,
     ProductPatchIn,
     ResourceOut,
     ServiceCreateIn,
     ServicePatchIn,
+    TemporaryPasswordOut,
 )
 from app.schemas.auth import PingOut
 from app.schemas.errors import ErrorBody
-from app.services import admin_products, admin_services
+from app.services import admin_barbers, admin_products, admin_services
 
 router = APIRouter(
     prefix="/admin",
@@ -128,3 +136,39 @@ def update_product(
 def delete_product(product_id: uuid.UUID, user: AdminUser, session: DbSession) -> Response:
     admin_products.delete_product(session, user.business_id, product_id)
     return Response(status_code=204)
+
+
+# --- barberos ---------------------------------------------------------------------------------
+
+
+@router.get("/barbers", response_model=AdminBarberListOut)
+def list_barbers(user: AdminUser, session: DbSession) -> AdminBarberListOut:
+    return AdminBarberListOut(items=admin_barbers.list_barbers(session, user.business_id))
+
+
+@router.post("/barbers", response_model=BarberCreatedOut, status_code=201)
+def create_barber(body: BarberCreateIn, user: AdminUser, session: DbSession) -> BarberCreatedOut:
+    """Devuelve ``temporary_password`` UNA sola vez; no se guarda en claro."""
+    barber, password = admin_barbers.create_barber(session, user.business_id, body)
+    return BarberCreatedOut(barber=barber, temporary_password=password)
+
+
+@router.patch("/barbers/{barber_id}", response_model=BarberUpdatedOut)
+def update_barber(
+    barber_id: uuid.UUID,
+    body: BarberPatchIn,
+    user: AdminUser,
+    session: DbSession,
+    business: CurrentBusiness,
+    now: Now,
+) -> BarberUpdatedOut:
+    barber, conflicts = admin_barbers.update_barber(session, business, barber_id, body, now)
+    return BarberUpdatedOut(barber=barber, conflicts=conflicts)
+
+
+@router.post("/barbers/{barber_id}/reset-password", response_model=TemporaryPasswordOut)
+def reset_barber_password(
+    barber_id: uuid.UUID, user: AdminUser, session: DbSession
+) -> TemporaryPasswordOut:
+    password = admin_barbers.reset_password(session, user.business_id, barber_id)
+    return TemporaryPasswordOut(temporary_password=password)

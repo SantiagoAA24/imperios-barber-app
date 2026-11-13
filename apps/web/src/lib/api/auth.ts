@@ -44,3 +44,17 @@ export function useLogout() {
     onSettled: () => queryClient.setQueryData(queryKeys.me, null),
   })
 }
+
+export type ChangePasswordInput = { current: string; new: string }
+
+export function useChangePassword() {
+  const queryClient = useQueryClient()
+  return useMutation<SessionUser, ApiError, ChangePasswordInput>({
+    mutationFn: async (body) => {
+      const { data, error, response } = await api.POST('/api/v1/auth/change-password', { body })
+      if (!data) throw toApiError(response.status, error)
+      return data
+    },
+    onSuccess: (user) => queryClient.setQueryData(queryKeys.me, user),
+  })
+}

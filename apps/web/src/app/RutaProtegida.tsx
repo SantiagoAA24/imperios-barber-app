@@ -32,6 +32,8 @@ export function RutaProtegida({ role, children }: RutaProtegidaProps) {
     )
   }
   if (!me.data) return <Navigate to="/ingresar" replace state={{ from: location.pathname }} />
+  // Clave temporal: nada de personal sirve hasta que la cambie.
+  if (me.data.must_change_password) return <Navigate to="/cambiar-clave" replace />
   if (me.data.role !== role) return <Navigate to={homeForRole(me.data.role)} replace />
   return <>{children}</>
 }
