@@ -5,7 +5,7 @@ from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.core.middleware import register_middleware
 from app.core.ratelimit import limiter
-from app.routers import admin, auth, me, public
+from app.routers import admin, auth, booking, me, public
 
 API_PREFIX = "/api/v1"
 
@@ -30,7 +30,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    for router in (public.router, auth.router, me.router, admin.router):
+    for router in (public.router, booking.router, auth.router, me.router, admin.router):
         app.include_router(router, prefix=API_PREFIX)
     return app
 

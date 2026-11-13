@@ -62,3 +62,24 @@ Decisión:
 - `/admin/ping` y `/me/ping` son rutas de apoyo; se reemplazan en las fases 6 y 7.
 Motivo: cerrar los huecos sin cambiar el alcance de la fase.
 Impacto: la fase 3 puede usar `CurrentBusiness`, `DbSession`, `BarberUser` y `AdminUser` (`app.core.tenant`, `app.core.db`, `app.core.security`).
+
+## 2026-11-13 · Decisiones de la fase 3 (disponibilidad y reservas)
+Contexto: el prompt de la fase 3 deja varios detalles abiertos y un caso real de concurrencia no previsto.
+Decisión:
+- Dependencias de desarrollo nuevas, las autorizadas: `pytest-cov`, `pytest-asyncio` y `hypothesis`. Las pruebas asíncronas siguen usando `anyio` (como la fase 2); `pytest-asyncio` quedó instalado y configurado (`asyncio_default_fixture_loop_scope`) pero sin uso.
+- **Deadlock como carrera perdida.** Dos INSERT simultáneos contra la restricción de exclusión pueden bloquearse entre sí y PostgreSQL aborta a uno con SQLSTATE `40P01` en vez de `23P01`. Se trata igual que 23P01 (rollback al savepoint, siguiente candidato o 409). Cuesta hasta ~1 s (`deadlock_timeout`) en el perdedor. Sin esto, "cualquiera" fallaba con 500.
+- Cada intento de INSERT va en un SAVEPOINT (`begin_nested`): así el cliente recién creado sobrevive al intento fallido y se prueba el siguiente barbero dentro de la misma transacción.
+- Cliente: `INSERT ... ON CONFLICT DO NOTHING` + `SELECT`, y luego se actualiza `consent_at` (conserva el nombre existente). Ese UPDATE toma el bloqueo de la fila del cliente, lo que serializa el conteo de `too_many_active` por celular sin `FOR UPDATE` explícito.
+- `SELECT ... FOR UPDATE` solo se usa en cancelar y reprogramar, sobre la misma cita, para que ambas operaciones no se pisen. No sustituye las restricciones de exclusión, que siguen siendo la garantía contra la doble reserva.
+- Reloj inyectable (`app.core.clock.utcnow`, dependencia `Now`): `compute_slots` y el servicio reciben `now` por parámetro; las pruebas lo sustituyen con `dependency_overrides`.
+- Validación de nombre, celular y consentimiento en el servicio (no con pydantic) para devolver códigos propios: `invalid_name`, `invalid_phone`, `consent_required`. Honeypot con texto: 400 `bad_request` genérico.
+- Se rechaza también en el POST (no solo en `/availability`) un día pasado o a más de 60 días: 422 `date_out_of_range`. Un horario de hoy ya pasado o dentro del margen responde 409 `slot_unavailable`.
+- Respuestas de la cita: se añadió `id` a `service` y `barber` (el prompt no los lista) para que el frontend pueda pedir disponibilidad al reprogramar. Precio y duración salen de la cita (snapshot); el nombre, del servicio vivo. Nunca se devuelve el celular.
+- Reprogramar conserva barbero, duración y recurso de la cita original; si el barbero ya no está activo, 409. Cita no `booked`: 409 `appointment_not_active`. Fuera de plazo al reprogramar: 409 `too_late_to_reschedule`. El texto del plazo se arma con `cancel_min_notice_min` ("1 hora", "2 horas", "45 minutos").
+- Alternativas del 409: hasta 3 horarios libres del mismo día, los más cercanos al pedido (empate: el más temprano), en orden cronológico; se recalculan con la base después de perder la carrera. Con barbero fijo solo se ofrecen los de ese barbero.
+- Límite de 10 solicitudes/hora por IP solo en `POST /public/appointments`; cancelar, reprogramar y ver comparten el tope general de 120/min. El límite sigue en memoria del proceso (ver fase 2).
+- Rutas de reservas en `routers/booking.py` (sin el `Cache-Control: public` del router de catálogo): todas responden `no-store`.
+- Citas con `attended` bloquean horario igual que `booked`; `no_show` y `cancelled` lo liberan.
+- Limitación conocida: el tope `max_active_per_phone` cuenta citas `booked` futuras; un cliente con dos celulares puede sumar más. Es una defensa contra abuso casual, no un control de identidad.
+Motivo: cerrar los huecos sin cambiar el alcance de la fase.
+Impacto: las fases 5 y 6 consumen estas rutas; la fase 6 debe reutilizar `availability_for` y tratar 40P01 igual que 23P01 al crear citas manuales.

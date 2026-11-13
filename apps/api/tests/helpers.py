@@ -1,12 +1,14 @@
 """Fábricas de datos para las pruebas de la API."""
 
 import itertools
+from datetime import time
 
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.models import (
     Barber,
+    BarberSchedule,
     Business,
     Product,
     ProductAvailability,
@@ -77,13 +79,14 @@ def make_service(
     active: bool = True,
     resource: Resource | None = None,
     price_cop: int = 22_000,
+    duration_min: int = 30,
 ) -> Service:
     s = Service(
         business_id=business.id,
         name=name,
         description=f"Descripción de {name}",
         price_cop=price_cop,
-        duration_min=30,
+        duration_min=duration_min,
         resource_id=resource.id if resource else None,
         active=active,
         sort=sort,
@@ -121,3 +124,16 @@ def make_product(
     session.add(p)
     session.commit()
     return p
+
+
+def make_schedule(
+    session: Session,
+    barber: Barber,
+    weekday: int,
+    blocks: list[tuple[time, time]] | None = None,
+) -> None:
+    for start, end in blocks or [(time(9), time(13)), (time(14), time(18))]:
+        session.add(
+            BarberSchedule(barber_id=barber.id, weekday=weekday, start_time=start, end_time=end)
+        )
+    session.commit()
