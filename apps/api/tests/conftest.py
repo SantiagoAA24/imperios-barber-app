@@ -1,15 +1,23 @@
-from collections.abc import Iterator
+import os
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+
+# Antes de importar la app: JWT_SECRET exige 32+ caracteres y el CI no tiene .env.
+os.environ["JWT_SECRET"] = "secreto-solo-para-pruebas-" + "x" * 16
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import get_settings
-from app.core.db import driver_url
+from app.core.config import Settings, get_settings
+from app.core.db import driver_url, get_session
+from app.core.ratelimit import limiter
+from app.main import create_app
 
 API_DIR = Path(__file__).resolve().parent.parent
 TEST_DB = "imperio_test"
@@ -67,7 +75,7 @@ def session(engine: Engine) -> Iterator[Session]:
         conn.execute(
             text(
                 'TRUNCATE appointment, barber_time_off, barber_schedule, barber, "user", '
-                "client, service, resource, product, business CASCADE"
+                "client, service, resource, product, refresh_token, business CASCADE"
             )
         )
 
@@ -77,3 +85,53 @@ def migration_db_url() -> Iterator[str]:
     _recreate_database(MIGRATION_DB)
     yield _url_for(MIGRATION_DB)
     _drop_database(MIGRATION_DB)
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits() -> None:
+    limiter.reset()
+
+
+def make_settings(**overrides: object) -> Settings:
+    values: dict[str, object] = {
+        "jwt_secret": os.environ["JWT_SECRET"],
+        "environment": "test",
+        "cookie_secure": False,  # los clientes de prueba hablan http
+        "allowed_origins": "http://localhost:5173",
+    }
+    return Settings(**{**values, **overrides})  # type: ignore[arg-type]
+
+
+@pytest.fixture
+def test_settings() -> Settings:
+    return make_settings()
+
+
+def build_app(engine: Engine, settings: Settings) -> FastAPI:
+    app = create_app(settings)
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+
+    def override_session() -> Iterator[Session]:
+        with factory() as s:
+            yield s
+
+    app.dependency_overrides[get_session] = override_session
+    return app
+
+
+@pytest.fixture
+def app(engine: Engine, session: Session, test_settings: Settings) -> FastAPI:
+    # Depende de ``session`` para que la limpieza de tablas corra después de cada prueba.
+    return build_app(engine, test_settings)
+
+
+@pytest.fixture
+async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
+    transport = ASGITransport(app=app, client=("10.0.0.1", 50000))
+    async with AsyncClient(transport=transport, base_url="http://testserver") as c:
+        yield c

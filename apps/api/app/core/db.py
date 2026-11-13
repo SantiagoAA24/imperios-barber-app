@@ -1,7 +1,9 @@
 """Engine, sessionmaker y dependencia ``get_session``."""
 
 from collections.abc import Iterator
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -27,3 +29,6 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 def get_session() -> Iterator[Session]:
     with SessionLocal() as session:
         yield session
+
+
+DbSession = Annotated[Session, Depends(get_session)]

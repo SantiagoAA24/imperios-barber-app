@@ -6,6 +6,7 @@ from app.models.base import Base
 from app.models.business import Business
 from app.models.client import Client
 from app.models.product import Product, ProductAvailability
+from app.models.refresh_token import RefreshToken
 from app.models.resource import Resource
 from app.models.service import Service
 from app.models.user import User, UserRole
@@ -22,6 +23,7 @@ __all__ = [
     "Client",
     "Product",
     "ProductAvailability",
+    "RefreshToken",
     "Resource",
     "Service",
     "User",

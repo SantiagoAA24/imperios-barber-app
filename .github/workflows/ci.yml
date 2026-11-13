@@ -24,6 +24,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql+psycopg://imperio:imperio@localhost:5432/imperio
+      JWT_SECRET: secreto-solo-para-ci-0123456789abcdef0123456789
     defaults:
       run:
         working-directory: apps/api

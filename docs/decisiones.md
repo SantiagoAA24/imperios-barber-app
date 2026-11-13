@@ -40,3 +40,25 @@ Contexto: el prompt pide Prettier pero no dice dónde se verifica.
 Decisión: `prettier --check` corre en `make lint` y como un paso extra del job web del CI.
 Motivo: que el formato no se desvíe sin que nadie lo note.
 Impacto: ninguno en fases posteriores.
+
+## 2026-11-13 · Decisiones de la fase 2 (catálogo público y autenticación)
+Contexto: el prompt de la fase 2 deja varios detalles abiertos.
+Decisión:
+- Dependencias nuevas, las que pide el prompt: `pyjwt` y `slowapi` (con `limits`). `argon2-cffi` ya estaba.
+- `JWT_SECRET` ya no tiene valor por defecto: sin él, o con menos de 32 caracteres, la app no arranca. El `.env` local debe actualizarse (ver `.env.example`); el CI y `conftest.py` fijan uno de prueba.
+- `COOKIE_SECURE` (por defecto `true`) y `ENVIRONMENT` (`production` activa HSTS) son variables nuevas; `.env.example` pone `COOKIE_SECURE=false` solo para desarrollo local.
+- Login: el tope de 5/min se aplica por separado a la IP y al correo (normalizado), contando todos los intentos. Un usuario inactivo recibe el mismo `invalid_credentials`. Con correo inexistente se gasta una verificación argon2 de relleno para igualar tiempos.
+- Los límites viven en memoria del proceso (`memory://`): sirven con un solo worker. Con varios, pasar a Redis antes de producir. Detrás de un proxy, la IP depende de `--proxy-headers` en uvicorn.
+- Los 120/min de las rutas públicas son un tope compartido entre las cuatro rutas por IP.
+- Origin: si la petición trae `Origin` y no está en `ALLOWED_ORIGINS`, 403 `origin_not_allowed` (incluye `null`). Si no trae `Origin` (curl, servidores) pasa, porque un navegador siempre lo manda y el riesgo de CSRF es de navegador.
+- Un access token solo vale en el negocio de su `business_id`: si el Host resuelve a otro negocio, 401 `invalid_token`. Además, `current_user` carga al usuario por `id` y `business_id` del token y exige `active`, así que desactivar a alguien corta su acceso de inmediato sin esperar los 15 min. El rol sale de la base, no del claim.
+- "Familia" del refresh = la cadena de rotaciones de un login (`family_id`). Reutilizar un refresh ya rotado o cerrado revoca esa cadena; las demás sesiones del mismo usuario siguen vivas. Dos refresh simultáneos con el mismo token se serializan (`FOR UPDATE`), así que el segundo cuenta como reutilización: la web debe evitar refrescar en paralelo desde varias pestañas.
+- Un refresh inválido, vencido o reutilizado borra ambas cookies en la respuesta 401. `/auth/logout` es idempotente y responde 204.
+- `/auth/*` responde `Cache-Control: no-store`; las rutas públicas añaden `Vary: Host`.
+- `barber` no tiene columna `sort`: `/public/barbers` ordena por `display_name`. Tampoco se cruza con `user.active` (el prompt pide solo `visible_in_booking` y `active` del barbero).
+- La tabla `refresh_token` no lleva `business_id` (el prompt fija sus columnas): el negocio se verifica a través del usuario en cada refresh.
+- Los errores 422 devuelven solo `loc` y `type` de cada campo, nunca el valor enviado, para no eco de contraseñas.
+- Pruebas asíncronas con el plugin `anyio` que ya trae el entorno (`@pytest.mark.anyio`), sin `pytest-asyncio`.
+- `/admin/ping` y `/me/ping` son rutas de apoyo; se reemplazan en las fases 6 y 7.
+Motivo: cerrar los huecos sin cambiar el alcance de la fase.
+Impacto: la fase 3 puede usar `CurrentBusiness`, `DbSession`, `BarberUser` y `AdminUser` (`app.core.tenant`, `app.core.db`, `app.core.security`).
