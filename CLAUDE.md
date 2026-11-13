@@ -3,8 +3,16 @@ PWA de citas para barberías. Monorepo: apps/web (React+TS), apps/api (FastAPI),
 
 ## Comandos
 - make dev | make test | make lint | make types   (types regenera el cliente desde OpenAPI)
-- API: cd apps/api && uv run pytest -q
-- Web: pnpm --filter web test && pnpm --filter web e2e
+- make db-up | make db-down   (PostgreSQL 16 en Docker; API y web corren en el host)
+- API: cd apps/api && uv run pytest -q   (también ruff y mypy --strict vía make lint)
+- Web: pnpm --filter web test   (e2e con Playwright llega en la fase 5)
+- make types solo imprime "disponible desde la fase 4" por ahora.
+
+## Estructura
+- apps/api/app: routers (solo HTTP), services (reglas), availability (cálculo puro), models, schemas, core.
+- Los routers validan, autorizan y llaman a un servicio; no contienen reglas de negocio.
+- docs/arquitectura.md es el plan; las desviaciones se anotan en docs/decisiones.md.
+- design-system/ es de solo lectura salvo que se pida lo contrario.
 
 ## Reglas de negocio
 - Slots cada 30 min; la disponibilidad se calcula solo en apps/api/availability.
