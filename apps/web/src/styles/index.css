@@ -32,6 +32,10 @@
   --font-*: initial;
   --font-display: var(--font-display);
   --font-body: var(--font-body);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
   --text-*: initial;
   --text-h1: var(--text-h1);
