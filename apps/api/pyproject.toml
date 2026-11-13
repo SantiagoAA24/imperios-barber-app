@@ -4,8 +4,12 @@ version = "0.0.0"
 description = "API de Imperio Barber"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "argon2-cffi>=25.1.0",
     "fastapi>=0.162.5",
+    "psycopg[binary]>=3",
     "pydantic-settings>=2.16.2",
+    "sqlalchemy>=2",
     "uvicorn[standard]>=0.54.0",
 ]
 
