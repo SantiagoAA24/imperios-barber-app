@@ -1,0 +1,85 @@
+/* GENERADO por scripts/build-tokens.mjs desde design-system/tokens.json. No lo edites a mano. */
+:root {
+  /* Color */
+  --color-bg: #0b0b0c;
+  --color-surface: #151517;
+  --color-surface-selected: #1b170d;
+  --color-surface-muted: #26231b;
+  --color-line: #2a2a2d;
+  --color-line-strong: #6b665b;
+  --color-gold: #d4af5a;
+  --color-gold-edge: #d4af5a55;
+  --color-on-gold: #0b0b0c;
+  --color-text: #f4efe4;
+  --color-text-muted: #a9a293;
+  --color-text-disabled: #6f6a5e;
+  --color-success: #6fbf8e;
+  --color-danger: #e57a6b;
+
+  /* Tipografía: familias */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Tipografía: estilos (tamaño, interlineado, peso) */
+  --text-h1: 36px;
+  --text-h1--line-height: 40px;
+  --text-h1--font-weight: 600;
+  --text-h2: 26px;
+  --text-h2--line-height: 32px;
+  --text-h2--font-weight: 600;
+  --text-price: 23px;
+  --text-price--line-height: 28px;
+  --text-price--font-weight: 700;
+  --text-total: 30px;
+  --text-total--line-height: 36px;
+  --text-total--font-weight: 700;
+  --text-day-number: 28px;
+  --text-day-number--line-height: 28px;
+  --text-day-number--font-weight: 700;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-body--font-weight: 400;
+  --text-body-strong: 15px;
+  --text-body-strong--line-height: 22px;
+  --text-body-strong--font-weight: 600;
+  --text-small: 14px;
+  --text-small--line-height: 21px;
+  --text-small--font-weight: 400;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-label--font-weight: 500;
+  --text-caption: 12.5px;
+  --text-caption--line-height: 18px;
+  --text-caption--font-weight: 400;
+  --text-overline: 12px;
+  --text-overline--line-height: 16px;
+  --text-overline--font-weight: 500;
+  --text-overline--letter-spacing: 0.08em;
+  --text-button: 16px;
+  --text-button--line-height: 24px;
+  --text-button--font-weight: 600;
+
+  /* Espaciado */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-14: 14px;
+  --space-20: 20px;
+  --space-36: 36px;
+
+  /* Controles y zona táctil */
+  --control-46: 46px;
+  --control-52: 52px;
+  --control-54: 54px;
+  --touch-min: 44px;
+
+  /* Radios */
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-18: 18px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  /* Sombra */
+  --shadow-logo-glow: 0 0 0 1px #d4af5a66, 0 12px 40px #d4af5a22;
+}
