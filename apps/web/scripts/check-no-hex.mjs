@@ -1,5 +1,6 @@
 // Falla si apps/web/src contiene colores hexadecimales o rgb()/rgba() fuera de tokens.css.
 // Los colores viven solo en packages/tokens (generado desde design-system/tokens.json).
+import process from 'node:process'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

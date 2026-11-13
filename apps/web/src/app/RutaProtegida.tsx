@@ -1,0 +1,34 @@
+import type { ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { homeForRole, useMe } from '../lib/api/auth'
+import type { UserRole } from '../lib/api/types'
+
+export type RutaProtegidaProps = {
+  /** Rol que puede ver estas rutas. */
+  role: UserRole
+  children: ReactNode
+}
+
+/** Consulta /auth/me: sin sesión → /ingresar; otro rol → la home de su propio rol. */
+export function RutaProtegida({ role, children }: RutaProtegidaProps) {
+  const me = useMe()
+  const location = useLocation()
+
+  if (me.isPending) {
+    return (
+      <p role="status" className="m-0 px-20 py-36 text-body text-text-muted">
+        Cargando…
+      </p>
+    )
+  }
+  if (me.isError) {
+    return (
+      <p role="alert" className="m-0 px-20 py-36 text-body text-danger">
+        No pudimos verificar tu sesión. Revisa tu conexión e inténtalo de nuevo.
+      </p>
+    )
+  }
+  if (!me.data) return <Navigate to="/ingresar" replace state={{ from: location.pathname }} />
+  if (me.data.role !== role) return <Navigate to={homeForRole(me.data.role)} replace />
+  return <>{children}</>
+}
