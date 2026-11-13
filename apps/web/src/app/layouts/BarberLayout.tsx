@@ -27,7 +27,7 @@ export function BarberLayout() {
       </div>
       <nav
         aria-label="Principal"
-        className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-bg"
+        className="fixed right-[0px] bottom-[0px] left-[0px] z-10 border-t border-line bg-bg"
       >
         <ul className="m-0 mx-auto flex w-full max-w-[480px] list-none p-0">
           {TABS.map((tab) => (

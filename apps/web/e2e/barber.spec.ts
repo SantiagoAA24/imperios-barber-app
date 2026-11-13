@@ -36,6 +36,7 @@ async function loginUi(page: Page, email = 'barbero1@imperio.test') {
   await page.getByLabel('Correo').fill(email)
   await page.getByLabel('Contraseña').fill(PASSWORD)
   await page.getByRole('button', { name: 'Ingresar' }).click()
+  await expect(page).toHaveURL(/\/barbero$/)
 }
 
 async function serviceId(request: APIRequestContext, name: string): Promise<string> {
