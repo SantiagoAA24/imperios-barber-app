@@ -1,0 +1,30 @@
+import { QueryClient } from '@tanstack/react-query'
+import { ApiError } from './client'
+
+/** El catálogo cambia poco: 60 s. La disponibilidad no se reutiliza: 0. */
+export const CATALOG_STALE_MS = 60_000
+export const AVAILABILITY_STALE_MS = 0
+
+export const queryKeys = {
+  business: ['business'] as const,
+  services: ['services'] as const,
+  barbers: ['barbers'] as const,
+  products: ['products'] as const,
+  availability: ['availability'] as const,
+  me: ['me'] as const,
+}
+
+export function createQueryClient(): QueryClient {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: CATALOG_STALE_MS,
+        // Un 4xx no mejora al repetirlo; una caída de red o un 5xx sí merecen un reintento.
+        retry: (failures, error) =>
+          failures < 2 && !(error instanceof ApiError && error.status < 500),
+      },
+    },
+  })
+  client.setQueryDefaults(queryKeys.availability, { staleTime: AVAILABILITY_STALE_MS })
+  return client
+}

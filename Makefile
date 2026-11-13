@@ -26,8 +26,12 @@ test:
 lint:
 	cd apps/api && uv run ruff check . && uv run ruff format --check . && uv run mypy .
 	pnpm --filter web lint
+	pnpm --filter web lint:colors
 	pnpm --filter web format:check
 	pnpm --filter web typecheck
 
+# Regenera todo lo derivado: tokens.css, openapi.json y el cliente tipado (schema.d.ts).
 types:
-	@echo "disponible desde la fase 4"
+	pnpm --filter @imperio/tokens build
+	cd apps/api && uv run python -m app.export_openapi
+	pnpm --filter web types

@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "types": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
+    "lint:colors": "node scripts/check-no-hex.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",
