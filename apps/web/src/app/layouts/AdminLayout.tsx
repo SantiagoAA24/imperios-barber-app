@@ -66,7 +66,7 @@ export function AdminLayout() {
           </ul>
         </nav>
       </aside>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-[0px] flex-1">
         <Outlet />
       </div>
     </div>

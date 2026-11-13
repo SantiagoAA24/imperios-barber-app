@@ -6,6 +6,7 @@ import AgendaPage from './AgendaPage'
 import BarbersPage from './BarbersPage'
 import ProductsPage from './ProductsPage'
 import ServicesPage from './ServicesPage'
+import WeekPage from './WeekPage'
 
 /** Área de administración: se carga con lazy() solo cuando alguien entra a /admin. */
 export default function AdminArea() {
@@ -14,7 +15,7 @@ export default function AdminArea() {
       <Route element={<AdminLayout />}>
         <Route index element={<ComingSoon name="Resumen" />} />
         <Route path="agenda" element={<AgendaPage />} />
-        <Route path="semana" element={<ComingSoon name="Agenda por semana" />} />
+        <Route path="semana" element={<WeekPage />} />
         <Route path="servicios" element={<ServicesPage />} />
         <Route path="productos" element={<ProductsPage />} />
         <Route path="barberos" element={<BarbersPage />} />

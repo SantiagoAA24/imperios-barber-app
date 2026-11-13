@@ -191,3 +191,16 @@ Decisión:
 - **Diferencias con el diseño:** sin la marca "Siguiente" (el barbero decide); se añade un selector "Ir a un día" (`input type=date`) además de anterior/Hoy/siguiente; el bloque del vaporizador no es interactivo (solo informa "En uso · barbero"); "Nueva cita" y el detalle son paneles al lado de la rejilla en vez de una ventana.
 Motivo: cerrar los huecos sin cambiar el alcance del PR.
 Impacto: Agenda semana reutiliza `GET /admin/appointments`, `AgendaHeader`, `AppointmentPanel`, `NewAppointmentPanel` y `agendaLayout`.
+
+## 2026-11-13 · Decisiones de la fase 7, PR 5 (Agenda semana)
+Contexto: quinta pantalla del admin; el backend ya existe (`GET /admin/appointments`, rango máximo 8 días).
+Decisión:
+- **Sin rutas nuevas:** la semana (lunes a domingo, la que contiene `?fecha=`) pide 7 días con la misma consulta de 4 SQL de la agenda del día; `day_start`/`day_end` cubren los siete días de la semana.
+- **Carriles:** un carril por barbero activo (y por cualquier barbero con citas esa semana), con código corto (`B1`, `B2`; `A`/`B` por iniciales; si se repiten se añade el orden). El carril se distingue por el código en texto y la posición, no solo por el color.
+- **Día actual:** borde y fondo resaltados más la palabra "hoy" y `aria-current="date"`. Cada cabecera de día es un enlace real a `/admin/agenda?fecha=` y trae el conteo de citas del día (sin canceladas).
+- **Teclado:** la región «Agenda de la semana» tiene `tabindex="0"` y `overflow-x: auto`: con el foco, las flechas desplazan si las siete columnas no caben (mínimo 120 px por día, o 60 px por carril).
+- **Bloques:** informativos, no interactivos (nombre, código de carril y, solo para lectores de pantalla, servicio, hora y barbero). Para ver o cambiar una cita se entra al día.
+- **Corrección de estilos:** con `--spacing: initial` (tokens propios) la utilidad `min-w-0` de Tailwind v4 queda inválida y el contenedor del admin no se encogía en pantallas angostas (la página se desbordaba en vez de desplazar la rejilla). `AdminLayout` usa `min-w-[0px]`. Otros `min-w-0` del proyecto siguen igual; no estaban afectados porque son elementos con `overflow` propio.
+- **Diferencias con el diseño:** "Hoy" en vez de "Esta semana" para volver a la actual (es el mismo enlace que en la vista Día); la leyenda de carriles es una lista; "Nueva cita" abre el mismo panel de la vista Día.
+Motivo: cerrar los huecos sin cambiar el alcance del PR.
+Impacto: ninguno en otras pantallas salvo el ajuste de `AdminLayout`.

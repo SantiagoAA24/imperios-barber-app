@@ -64,3 +64,37 @@ describe('agendaLayout', () => {
     expect(cols.map((c) => c.id)).toEqual(['b1', 'b4', 'b2'])
   })
 })
+
+import { formatWeekRange, laneCodes, weekDays, weekStart } from './agendaLayout'
+
+describe('semana', () => {
+  it('weekStart devuelve el lunes de la semana', () => {
+    expect(weekStart('2026-11-16')).toBe('2026-11-16') // lunes
+    expect(weekStart('2026-11-18')).toBe('2026-11-16') // miércoles
+    expect(weekStart('2026-11-22')).toBe('2026-11-16') // domingo
+    expect(weekStart('2026-11-23')).toBe('2026-11-23')
+    expect(weekStart('2026-12-02')).toBe('2026-11-30') // cruza de mes
+  })
+  it('weekDays trae siete días seguidos', () => {
+    expect(weekDays('2026-11-30')).toEqual([
+      '2026-11-30',
+      '2026-12-01',
+      '2026-12-02',
+      '2026-12-03',
+      '2026-12-04',
+      '2026-12-05',
+      '2026-12-06',
+    ])
+  })
+  it('formatWeekRange', () => {
+    expect(formatWeekRange('2026-11-09', '2026-11-15')).toBe('del 9 al 15 de noviembre')
+    expect(formatWeekRange('2026-11-30', '2026-12-06')).toBe(
+      'del 30 de noviembre al 6 de diciembre',
+    )
+  })
+  it('laneCodes', () => {
+    expect(laneCodes(['Barbero 1', 'Barbero 2'])).toEqual(['B1', 'B2'])
+    expect(laneCodes(['Ana', 'Beto'])).toEqual(['A', 'B'])
+    expect(laneCodes(['Ana', 'Alba'])).toEqual(['A1', 'A2'])
+  })
+})

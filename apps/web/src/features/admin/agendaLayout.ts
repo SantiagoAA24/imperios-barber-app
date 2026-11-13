@@ -86,3 +86,52 @@ export function agendaColumns(
   }
   return [...columns.values()].sort((a, b) => a.label.localeCompare(b.label, 'es'))
 }
+
+// --- semana -----------------------------------------------------------------------------------
+
+const noon = (day: string): Date => new Date(`${day}T12:00:00-05:00`)
+
+/** Lunes de la semana del día dado (AAAA-MM-DD, calendario de Bogotá). */
+export function weekStart(day: string): string {
+  const dow = noon(day).getUTCDay() // a mediodía de Bogotá el día UTC es el mismo
+  const offset = (dow + 6) % 7
+  return new Date(noon(day).getTime() - offset * 86_400_000).toISOString().slice(0, 10)
+}
+
+/** Los siete días (lunes a domingo) de la semana que empieza en `start`. */
+export function weekDays(start: string): string[] {
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(noon(start).getTime() + i * 86_400_000).toISOString().slice(0, 10),
+  )
+}
+
+const monthFormat = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', month: 'long' })
+
+/** '2026-11-09', '2026-11-15' -> 'del 9 al 15 de noviembre'. */
+export function formatWeekRange(start: string, end: string): string {
+  const a = noon(start)
+  const b = noon(end)
+  const dayA = Number(start.slice(8))
+  const dayB = Number(end.slice(8))
+  const monthA = monthFormat.format(a)
+  const monthB = monthFormat.format(b)
+  return monthA === monthB
+    ? `del ${dayA} al ${dayB} de ${monthB}`
+    : `del ${dayA} de ${monthA} al ${dayB} de ${monthB}`
+}
+
+/** Código corto de carril: 'Barbero 1' -> 'B1', 'Ana' -> 'A'. Si dos coinciden se añade el orden. */
+export function laneCodes(names: string[]): string[] {
+  const base = names.map((name) => {
+    const words = name.trim().split(/\s+/)
+    const letters = words
+      .filter((w) => !/^\d+$/.test(w))
+      .map((w) => w.charAt(0).toUpperCase())
+      .join('')
+    const digits = words.filter((w) => /^\d+$/.test(w)).join('')
+    return `${letters || '?'}${digits}`
+  })
+  return base.map((code, i) =>
+    base.indexOf(code) === i && base.lastIndexOf(code) === i ? code : `${code}${i + 1}`,
+  )
+}
