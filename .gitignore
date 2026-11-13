@@ -1,2 +1,14 @@
 .DS_Store
 .env
+# Python
+__pycache__/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
