@@ -56,3 +56,17 @@ export const UsersIcon = (props: IconProps) => (
     <path d="M16 5.2a3 3 0 0 1 0 5.6M18 14.4c1.8.6 2.7 2.2 3 4.6" />
   </Icon>
 )
+
+export const CalendarIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" />
+    <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+  </Icon>
+)
+
+export const PlusCircleIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8v8M8 12h8" />
+  </Icon>
+)
