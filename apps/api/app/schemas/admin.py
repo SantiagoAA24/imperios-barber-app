@@ -1,7 +1,8 @@
 """Esquemas de /admin: catálogo editable (servicios y, más adelante, productos y barberos)."""
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
@@ -88,3 +89,79 @@ class OrderIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ids: list[uuid.UUID] = Field(min_length=1, max_length=500)
+
+
+# --- productos --------------------------------------------------------------------------------
+
+ProductAvailabilityLiteral = Literal["in_stock", "out_of_stock"]
+
+
+def _https_url(value: str | None) -> str | None:
+    if value is None:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    parts = urlsplit(value)
+    if len(value) > 500 or parts.scheme != "https" or not parts.hostname:
+        raise ValueError("image_url debe ser https y de máximo 500 caracteres")
+    return value
+
+
+class AdminProductOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    description: str | None
+    price_cop: int
+    availability: ProductAvailabilityLiteral
+    image_url: str | None
+    active: bool
+    sort: int
+
+
+class AdminProductListOut(BaseModel):
+    items: list[AdminProductOut]
+
+
+class _ProductMixin(BaseModel):
+    @field_validator("image_url", check_fields=False)
+    @classmethod
+    def _image(cls, value: str | None) -> str | None:
+        return _https_url(value)
+
+    @field_validator("description", check_fields=False)
+    @classmethod
+    def _empty_description(cls, value: str | None) -> str | None:
+        return _blank_to_none(value)
+
+
+class ProductCreateIn(_ProductMixin):
+    model_config = ConfigDict(extra="forbid")
+
+    name: Name
+    description: Description | None = None
+    price_cop: PriceCop
+    availability: ProductAvailabilityLiteral = "in_stock"
+    image_url: str | None = None
+    active: bool = True
+
+
+class ProductPatchIn(_ProductMixin):
+    model_config = ConfigDict(extra="forbid")
+
+    name: Name | None = None
+    description: Description | None = None
+    price_cop: PriceCop | None = None
+    availability: ProductAvailabilityLiteral | None = None
+    image_url: str | None = None
+    active: bool | None = None
+
+    @field_validator("name", "price_cop", "availability", "active")
+    @classmethod
+    def _not_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("no puede ser null")
+        return value
+
+    def sent(self) -> dict[str, object]:
+        return {k: getattr(self, k) for k in self.model_fields_set}

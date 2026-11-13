@@ -154,3 +154,14 @@ Decisión:
 - **Diferencias con el diseño:** columna "Estado" con interruptor en vez de "Visible" (y "Oculto para los clientes" bajo el nombre); se añaden "Subir/Bajar" y "Eliminar servicio" (el diseño traía "Archivar"); "Nota para el cliente" pasó a "Descripción para el cliente" (es `description`, máx. 200); el checkbox del vaporizador solo aparece si el negocio tiene un recurso; el panel no se abre por defecto (aparece al pulsar "Editar" o "Agregar servicio"); sin el bloque "Ajustes" en la barra lateral (no existe la pantalla); iconos de la barra lateral sin añadir (la barra ya existía sin ellos).
 Motivo: cerrar los huecos sin cambiar el alcance del PR.
 Impacto: Productos reutiliza `CatalogHeader`, `useUnsavedGuard`, `moveId` y el patrón del panel; Barberos, `useUnsavedGuard`.
+
+## 2026-11-13 · Decisiones de la fase 7, PR 2 (Productos)
+Contexto: segunda pantalla del admin; mismo patrón que Servicios.
+Decisión:
+- **Rutas** (solo admin, filtradas por `business_id`): `GET/POST /admin/products`, `PATCH/DELETE /admin/products/{id}`, `PUT /admin/products/order` (lista completa, 422 `invalid_order`). Respuesta de lista: `{items}`.
+- **`image_url`:** solo `https://`, máx. 500 caracteres; vacío se guarda como `null`; cualquier otro esquema (`http:`, `javascript:`) responde 422. Sin subida de archivos en el MVP.
+- **DELETE:** los productos no tienen historial (solo catálogo), así que se pueden eliminar con confirmación; ocultar también pide confirmación.
+- **Pantalla:** "Disponibilidad" con palabra e ícono (Disponible / Agotado) y un interruptor "Hay en inventario" en el panel; "Estado" con interruptor de visible. Reutiliza `CatalogHeader`, `useUnsavedGuard` y `moveId`.
+- **Diferencias con el diseño:** el diseño de productos (`admin-productos.dc.html`) tiene categorías y fotos subidas; `product` no tiene categoría y no hay subida, así que se edita un enlace https a la foto.
+Motivo: cerrar los huecos sin cambiar el alcance del PR.
+Impacto: ninguno en otras pantallas.

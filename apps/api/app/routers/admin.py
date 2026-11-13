@@ -6,16 +6,20 @@ from app.core.db import DbSession
 from app.core.security import AdminUser
 from app.routers.booking import no_store
 from app.schemas.admin import (
+    AdminProductListOut,
+    AdminProductOut,
     AdminServiceListOut,
     AdminServiceOut,
     OrderIn,
+    ProductCreateIn,
+    ProductPatchIn,
     ResourceOut,
     ServiceCreateIn,
     ServicePatchIn,
 )
 from app.schemas.auth import PingOut
 from app.schemas.errors import ErrorBody
-from app.services import admin_services
+from app.services import admin_products, admin_services
 
 router = APIRouter(
     prefix="/admin",
@@ -80,4 +84,47 @@ def update_service(
 @router.delete("/services/{service_id}", status_code=204)
 def delete_service(service_id: uuid.UUID, user: AdminUser, session: DbSession) -> Response:
     admin_services.delete_service(session, user.business_id, service_id)
+    return Response(status_code=204)
+
+
+# --- productos --------------------------------------------------------------------------------
+
+
+def _product_list(session: DbSession, user: AdminUser) -> AdminProductListOut:
+    return AdminProductListOut(
+        items=[
+            AdminProductOut.model_validate(p, from_attributes=True)
+            for p in admin_products.list_products(session, user.business_id)
+        ]
+    )
+
+
+@router.get("/products", response_model=AdminProductListOut)
+def list_products(user: AdminUser, session: DbSession) -> AdminProductListOut:
+    return _product_list(session, user)
+
+
+@router.post("/products", response_model=AdminProductOut, status_code=201)
+def create_product(body: ProductCreateIn, user: AdminUser, session: DbSession) -> AdminProductOut:
+    product = admin_products.create_product(session, user.business_id, body)
+    return AdminProductOut.model_validate(product, from_attributes=True)
+
+
+@router.put("/products/order", response_model=AdminProductListOut)
+def reorder_products(body: OrderIn, user: AdminUser, session: DbSession) -> AdminProductListOut:
+    admin_products.reorder_products(session, user.business_id, body.ids)
+    return _product_list(session, user)
+
+
+@router.patch("/products/{product_id}", response_model=AdminProductOut)
+def update_product(
+    product_id: uuid.UUID, body: ProductPatchIn, user: AdminUser, session: DbSession
+) -> AdminProductOut:
+    product = admin_products.update_product(session, user.business_id, product_id, body)
+    return AdminProductOut.model_validate(product, from_attributes=True)
+
+
+@router.delete("/products/{product_id}", status_code=204)
+def delete_product(product_id: uuid.UUID, user: AdminUser, session: DbSession) -> Response:
+    admin_products.delete_product(session, user.business_id, product_id)
     return Response(status_code=204)
