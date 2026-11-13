@@ -23,3 +23,10 @@ export type Conflict = components['schemas']['ConflictOut']
 export type TimeOff = components['schemas']['TimeOffOut']
 export type TimeOffCreated = components['schemas']['TimeOffCreatedOut']
 export type MeCreateAppointmentBody = components['schemas']['MeCreateAppointmentIn']
+
+// Administración (/admin)
+export type AdminService = components['schemas']['AdminServiceOut']
+export type AdminServiceList = components['schemas']['AdminServiceListOut']
+export type AdminResource = components['schemas']['ResourceOut']
+export type ServiceCreateBody = components['schemas']['ServiceCreateIn']
+export type ServicePatchBody = components['schemas']['ServicePatchIn']

@@ -17,6 +17,7 @@ export const queryKeys = {
   schedule: ['barber', 'schedule'] as const,
   timeOff: ['barber', 'time-off'] as const,
   nextFree: ['barber', 'next-free'] as const,
+  adminServices: ['admin', 'services'] as const,
 }
 
 export function createQueryClient(): QueryClient {

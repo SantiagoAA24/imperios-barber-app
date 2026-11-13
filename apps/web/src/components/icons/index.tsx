@@ -133,3 +133,22 @@ export const RefreshIcon = (props: IconProps) => (
     <path d="M20 11a8 8 0 0 0-14.5-4M4 4v3.5h3.5M4 13a8 8 0 0 0 14.5 4M20 20v-3.5h-3.5" />
   </Icon>
 )
+
+export const PencilIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 20l1-4L16.5 4.5a2 2 0 0 1 3 3L8 19z" />
+    <path d="M14.5 6.5l3 3" />
+  </Icon>
+)
+
+export const ArrowUpIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 19V5M6 11l6-6 6 6" />
+  </Icon>
+)
+
+export const ArrowDownIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 5v14M6 13l6 6 6-6" />
+  </Icon>
+)
