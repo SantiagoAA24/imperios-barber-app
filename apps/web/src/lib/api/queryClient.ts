@@ -11,6 +11,7 @@ export const queryKeys = {
   barbers: ['barbers'] as const,
   products: ['products'] as const,
   availability: ['availability'] as const,
+  appointment: ['appointment'] as const,
   me: ['me'] as const,
 }
 
@@ -26,5 +27,6 @@ export function createQueryClient(): QueryClient {
     },
   })
   client.setQueryDefaults(queryKeys.availability, { staleTime: AVAILABILITY_STALE_MS })
+  client.setQueryDefaults(queryKeys.appointment, { staleTime: AVAILABILITY_STALE_MS })
   return client
 }

@@ -63,4 +63,24 @@ describe('SummaryCard', () => {
     )
     expect((screen.getByRole('button') as HTMLButtonElement).disabled).toBe(true)
   })
+
+  it('variante bar: una línea "Servicio · fecha · hora", el total y el botón, fija abajo', async () => {
+    const { container } = render(
+      <main>
+        <SummaryCard {...base} variant="bar" dateTime="viernes 13 nov · 12:30 pm">
+          <Button block>Confirmar cita</Button>
+        </SummaryCard>
+      </main>,
+    )
+    expect(screen.getByText('Corte + barba · viernes 13 nov · 12:30 pm')).toBeTruthy()
+    expect(screen.getByText('$27.000')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Confirmar cita' })).toBeTruthy()
+    expect(container.querySelector('section')?.className).toContain('fixed')
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('variante bar sin hora: pide elegir una', () => {
+    render(<SummaryCard {...base} variant="bar" dateTime={null} />)
+    expect(screen.getByText('Corte + barba · Elige una hora')).toBeTruthy()
+  })
 })

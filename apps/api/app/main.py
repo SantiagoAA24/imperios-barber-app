@@ -15,6 +15,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="Imperio Barber API")
     app.state.settings = settings
     app.state.limiter = limiter
+    limiter.enabled = settings.rate_limit_enabled or settings.is_production
     register_error_handlers(app)
     register_middleware(app, settings)
     # Último en añadirse = más externo: CORS responde antes (preflight) y envuelve todo lo demás.

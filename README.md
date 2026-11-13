@@ -24,13 +24,22 @@ make dev
 
 ## Comandos
 
-| Comando | Qué hace |
-| --- | --- |
-| `make db-up` / `make db-down` | Inicia o detiene PostgreSQL |
-| `make dev` | Base de datos + API con recarga + web |
-| `make test` | pytest y Vitest |
-| `make lint` | ruff, mypy, ESLint, Prettier y `tsc` |
-| `make types` | Cliente de API desde OpenAPI (disponible desde la fase 4) |
+| Comando                       | Qué hace                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------- |
+| `make db-up` / `make db-down` | Inicia o detiene PostgreSQL                                                                 |
+| `make dev`                    | Base de datos + API con recarga + web                                                       |
+| `make test`                   | pytest y Vitest                                                                             |
+| `make lint`                   | ruff, mypy, ESLint, Prettier y `tsc`                                                        |
+| `make e2e`                    | Pruebas E2E con Playwright (390×844) contra la API real y una base sembrada (`imperio_e2e`) |
+| `make types`                  | Cliente de API desde OpenAPI (disponible desde la fase 4)                                   |
+
+## Pruebas E2E
+
+`make e2e` (o `pnpm --filter web e2e`) necesita PostgreSQL arriba (`make db-up`). `scripts/e2e-setup.sh` recrea y siembra la base `imperio_e2e`; Playwright levanta la API (:8100) y la web compilada (:4173). La primera vez, instala el navegador con `pnpm --filter web exec playwright install chromium`.
+
+## Pendiente antes de producción
+
+- **PENDIENTE DE REVISIÓN LEGAL:** el texto de `/privacidad` (política de tratamiento de datos, Ley 1581 de 2012) es provisional. Lo debe revisar un abogado y completarse con la razón social, el NIT y el contacto del responsable. La marca está visible en la pantalla y en `apps/web/src/app/pages/Privacy.tsx`.
 
 ## Estructura
 

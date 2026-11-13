@@ -97,3 +97,26 @@ Decisión:
 - Limitación conocida: el tope `max_active_per_phone` cuenta citas `booked` futuras; un cliente con dos celulares puede sumar más. Es una defensa contra abuso casual, no un control de identidad.
 Motivo: cerrar los huecos sin cambiar el alcance de la fase.
 Impacto: las fases 5 y 6 consumen estas rutas; la fase 6 debe reutilizar `availability_for` y tratar 40P01 igual que 23P01 al crear citas manuales.
+
+## 2026-11-13 · Decisiones de la fase 5 (flujo del cliente)
+Contexto: el prompt de la fase 5 y los diseños de `design/screens/` difieren en algunos puntos, y faltaban piezas en el sistema de diseño.
+Decisión:
+- **Dependencias de desarrollo nuevas, las autorizadas:** `@playwright/test` (1.63.0, la versión del navegador ya instalado) y `@axe-core/playwright`.
+- **Orden de los pasos:** el prompt manda (1 Servicio + Barbero, 2 Día y hora, 3 Tus datos); el prototipo `agendar.dc.html` tenía Barbero como paso aparte y un bloque "Resumen" en el flujo. El resumen pasó a una barra fija abajo (`SummaryCard variant="bar"`), como pidió el prompt.
+- **Cabecera de `/`:** sello de 44 px + "Imperio Barber" + enlace "Productos", como pidió el prompt; el diseño traía el sello de 132 px centrado y sin enlace.
+- **Textos del prompt sobre los del diseño:** "Agregar al calendario" (el diseño decía "Añadir"), "Reprogramar" ("Reagendar"), "Agotado" ("Agotado por ahora").
+- **Sin motivo de cancelación:** `cliente-cancelar.dc.html` trae chips de "¿Qué pasó?"; la API no tiene dónde guardarlo, así que no se muestran. El diálogo conserva título, resumen, "Sí, cancelar cita", "Mantener mi cita" y "Prefiero reprogramar".
+- **Sin filtros por categoría en `/productos`:** el diseño trae chips (Cabello, Barba…); `product` no tiene categoría. Se muestran todos.
+- **Componentes añadidos al sistema (cada uno con su prueba):** `Checkbox`, `Dialog` (elemento `<dialog>` nativo: `showModal` da el foco atrapado y Escape), `Skeleton`, `AppointmentCard` (cita-confirmada.dc.html), `ProductCard`. Variantes nuevas: `Button` `danger`, `danger-outline` y `ghost`; `DayChip` `note` ("sin cupo"); `SummaryCard` `variant="bar"` y `totalCop` nulo; `StepHeader` `headingRef`. Iconos: flecha atrás, chevron, frasco y tienda.
+- **Disponibilidad:** el cliente solo muestra lo que devuelve `/public/availability`. Se consultan 7 días en paralelo (`useQueries`, `staleTime` 0); si el día elegido se queda sin cupo, se pasa al primer día con horarios. El plazo de cancelación y los límites los decide la API (`can_cancel`, `can_reschedule`, 409 con su `message`).
+- **Barbero "Cualquiera":** se envía `barber_id: null`; `/cita/<token>` muestra el barbero que la API asignó.
+- **Foco por teclado:** se detecta con `event.detail === 0` en el clic del botón (Enter/Espacio). Con teclado, el foco va al encabezado del paso siguiente; con ratón o toque solo se desplaza (suave, salvo `prefers-reduced-motion`). El paso 1 se da por completo al elegir barbero con el servicio ya elegido; el paso 2, al elegir hora.
+- **409 `slot_unavailable`:** se invalida la disponibilidad, se conserva todo lo escrito y se ofrecen hasta 3 alternativas (`details.alternatives`). Igual al reprogramar.
+- **Teléfono:** el cliente envía los 10 dígitos nacionales (sin `+57`); la API normaliza a E.164. La validación del cliente (nombre 2-60, celular que empieza por 3) solo adelanta el aviso; la API vuelve a validar.
+- **Enlace de privacidad:** abre en otra pestaña para no perder lo escrito en el formulario.
+- **`/privacidad`:** texto provisional con la marca visible `PENDIENTE DE REVISIÓN LEGAL` (también en el código y en el README). Falta razón social, NIT y datos de contacto del responsable.
+- **Pruebas E2E:** `scripts/e2e-setup.sh` recrea `imperio_e2e` (mismo servidor que `DATABASE_URL`, otra base), migra y siembra. Playwright levanta la API en `:8100` y la web **compilada** con `vite preview` en `:4173` (el service worker solo existe en la compilación); `API_PROXY_TARGET` apunta el proxy de `/api` a la API de pruebas. Un solo trabajador y `reducedMotion: 'reduce'`.
+- **API: `RATE_LIMIT_ENABLED`:** variable nueva (por defecto `true`) para apagar el límite por IP solo en E2E, donde todas las pruebas comparten IP. En `ENVIRONMENT=production` se ignora y el límite queda siempre activo.
+- **Service worker:** `vite-plugin-pwa` no activa `clientsClaim`, así que la primera visita no queda controlada por el service worker; el catálogo se guarda en caché desde la segunda carga. La prueba offline lo tiene en cuenta (recarga una vez).
+Motivo: cerrar los huecos sin cambiar el alcance de la fase.
+Impacto: la fase 6 (barbero) puede reutilizar `SlotPicker`/`useSlotPicker` y los componentes nuevos; la fase 8 debe quitar la marca legal de `/privacidad` solo tras la revisión.

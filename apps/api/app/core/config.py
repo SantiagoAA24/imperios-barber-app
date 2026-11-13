@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # Secure en las cookies; solo se apaga (COOKIE_SECURE=false) para desarrollo local sin HTTPS.
     cookie_secure: bool = True
     default_business_slug: str = "imperio"
+    # Solo para las pruebas E2E (RATE_LIMIT_ENABLED=false): varias pruebas comparten una IP. En
+    # producción se ignora y el límite siempre queda activo.
+    rate_limit_enabled: bool = True
     access_token_minutes: int = Field(default=15, gt=0)
     refresh_token_days: int = Field(default=30, gt=0)
 

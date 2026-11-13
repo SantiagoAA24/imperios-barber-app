@@ -30,3 +30,23 @@ def test_jwt_secret_ausente_impide_arrancar(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.chdir("/")  # sin ../../.env ni .env cerca
     with pytest.raises(ValidationError):
         load_settings()
+
+
+def test_rate_limit_activo_por_defecto_y_forzado_en_produccion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.core.ratelimit import limiter
+    from app.main import create_app
+
+    monkeypatch.setenv("JWT_SECRET", SECRET)
+    assert load_settings().rate_limit_enabled is True
+
+    monkeypatch.setenv("RATE_LIMIT_ENABLED", "false")
+    try:
+        create_app(load_settings())
+        assert limiter.enabled is False  # E2E: se puede apagar fuera de producción
+        monkeypatch.setenv("ENVIRONMENT", "production")
+        create_app(load_settings())
+        assert limiter.enabled is True  # en producción se ignora
+    finally:
+        limiter.enabled = True

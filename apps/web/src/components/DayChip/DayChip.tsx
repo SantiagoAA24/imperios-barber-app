@@ -9,9 +9,11 @@ export type DayChipProps = Omit<
   weekday: string
   day: number | string
   selected: boolean
+  /** Palabra bajo el número, p. ej. "sin cupo": el estado nunca va solo por color. */
+  note?: string
 }
 
-export function DayChip({ weekday, day, selected, className, ...rest }: DayChipProps) {
+export function DayChip({ weekday, day, selected, note, className, ...rest }: DayChipProps) {
   return (
     <button
       {...rest}
@@ -38,6 +40,7 @@ export function DayChip({ weekday, day, selected, className, ...rest }: DayChipP
         {weekday}
       </span>
       <span className="font-display text-day-number">{day}</span>
+      {note && <span className="text-overline font-body">{note}</span>}
     </button>
   )
 }

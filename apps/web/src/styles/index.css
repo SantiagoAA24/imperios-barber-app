@@ -102,12 +102,20 @@
 
 @layer base {
   html {
+    /* Deja sitio a la barra fija de resumen al enfocar o desplazar hasta un elemento. */
+    scroll-padding-bottom: 220px;
+    scroll-behavior: smooth;
     background: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-body);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
   body {
     margin: 0;

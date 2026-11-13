@@ -70,3 +70,28 @@ export const PlusCircleIcon = (props: IconProps) => (
     <path d="M12 8v8M8 12h8" />
   </Icon>
 )
+
+export const ArrowLeftIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M15 5l-7 7 7 7" />
+  </Icon>
+)
+
+export const ChevronRightIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 5l7 7-7 7" />
+  </Icon>
+)
+
+export const BottleIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 3h6v3H9zM8 6h8l1 4v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9z" />
+    <path d="M7 13h10" />
+  </Icon>
+)
+
+export const StoreIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M10 20v-6h4v6" />
+  </Icon>
+)

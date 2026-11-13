@@ -30,4 +30,12 @@ describe('StepHeader', () => {
     render(<StepHeader step={1} title="Detalle" level={3} />)
     expect(screen.getByRole('heading', { level: 3 })).toBeTruthy()
   })
+
+  it('con headingRef el encabezado puede recibir foco por código', () => {
+    const ref = { current: null as HTMLHeadingElement | null }
+    render(<StepHeader step={2} title="Día y hora" headingRef={ref} />)
+    ref.current?.focus()
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Día y hora' }))
+    expect(ref.current?.getAttribute('tabindex')).toBe('-1')
+  })
 })

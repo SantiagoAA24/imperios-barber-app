@@ -14,7 +14,8 @@
     "types": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
     "lint:colors": "node scripts/check-no-hex.mjs",
     "preview": "vite preview",
-    "icons": "node scripts/build-icons.mjs"
+    "icons": "node scripts/build-icons.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",
@@ -27,7 +28,9 @@
     "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "^4.3.5",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

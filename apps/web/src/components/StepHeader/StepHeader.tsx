@@ -1,4 +1,5 @@
-import { cx } from '../classes'
+import type { Ref } from 'react'
+import { cx, FOCUS_RING } from '../classes'
 
 export type StepHeaderProps = {
   step: number
@@ -6,10 +7,12 @@ export type StepHeaderProps = {
   /** Nivel del encabezado real; por defecto h2 para poder saltar entre secciones. */
   level?: 2 | 3
   id?: string
+  /** Para llevarle el foco al paso siguiente; el encabezado se vuelve enfocable por código (tabIndex -1). */
+  headingRef?: Ref<HTMLHeadingElement>
   className?: string
 }
 
-export function StepHeader({ step, title, level = 2, id, className }: StepHeaderProps) {
+export function StepHeader({ step, title, level = 2, id, headingRef, className }: StepHeaderProps) {
   const Heading = level === 2 ? 'h2' : 'h3'
   return (
     <div className={cx('flex items-center gap-[12px]', className)}>
@@ -19,7 +22,12 @@ export function StepHeader({ step, title, level = 2, id, className }: StepHeader
       >
         {step}
       </span>
-      <Heading id={id} className="m-0 font-display text-h2 text-text">
+      <Heading
+        id={id}
+        ref={headingRef}
+        tabIndex={headingRef ? -1 : undefined}
+        className={cx('m-0 font-display text-h2 text-text', FOCUS_RING)}
+      >
         {title}
       </Heading>
     </div>

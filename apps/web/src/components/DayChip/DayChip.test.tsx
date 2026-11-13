@@ -41,4 +41,9 @@ describe('DayChip', () => {
     render(<DayChip weekday="Vie" day={13} selected={false} />)
     expect(declaredHeight(screen.getByRole('button'))).toBeGreaterThanOrEqual(44)
   })
+
+  it('muestra la nota ("sin cupo") como texto, no solo como estilo', () => {
+    render(<DayChip weekday="Dom" day={15} selected={false} disabled note="sin cupo" />)
+    expect(screen.getByText('sin cupo')).toBeTruthy()
+  })
 })

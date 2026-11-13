@@ -3,7 +3,7 @@ import { cx, FOCUS_RING, TAPPABLE, TRANSITION } from '../classes'
 import { SpinnerIcon } from '../icons'
 
 type Common = {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'danger' | 'danger-outline' | 'ghost'
   /** `lg` = 54 px (acción principal); `md` = 44 px (mínimo táctil). */
   size?: 'lg' | 'md'
   /** Ocupa todo el ancho del contenedor. */
@@ -26,6 +26,14 @@ const VARIANT = {
     'bg-gold text-on-gold enabled:hover:brightness-110 enabled:active:brightness-90 aria-disabled:hover:brightness-100',
   secondary:
     'bg-surface text-text border border-line-strong enabled:hover:bg-surface-selected enabled:hover:border-gold enabled:active:bg-surface-muted',
+  // Acción destructiva confirmada (cancelar cita): relleno de peligro con texto oscuro.
+  danger:
+    'bg-danger text-on-gold enabled:hover:brightness-110 enabled:active:brightness-90 aria-disabled:hover:brightness-100',
+  // Acción destructiva que aún pide confirmación: borde neutro y texto de peligro.
+  'danger-outline':
+    'bg-surface text-danger border border-line-strong enabled:hover:bg-surface-selected enabled:hover:border-danger enabled:active:bg-surface-muted',
+  // Acción terciaria: solo texto dorado, sin caja.
+  ghost: 'bg-transparent text-gold enabled:hover:brightness-110 enabled:active:brightness-90',
 } as const
 
 const SIZE = { lg: 'min-h-control-54', md: 'min-h-touch' } as const

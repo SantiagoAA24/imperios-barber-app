@@ -70,4 +70,24 @@ describe('Button', () => {
     const min = declaredHeight(screen.getByRole('button'))
     expect(min).toBeGreaterThanOrEqual(44)
   })
+
+  it('las variantes danger, danger-outline y ghost son botones reales sin violaciones', async () => {
+    const { container } = render(
+      <>
+        <Button variant="danger">Sí, cancelar cita</Button>
+        <Button variant="danger-outline">Cancelar cita</Button>
+        <Button variant="ghost" size="md">
+          Prefiero reagendar
+        </Button>
+      </>,
+    )
+    expect(screen.getByRole('button', { name: 'Sí, cancelar cita' }).className).toContain(
+      'bg-danger',
+    )
+    expect(screen.getByRole('button', { name: 'Cancelar cita' }).className).toContain('text-danger')
+    expect(screen.getByRole('button', { name: 'Prefiero reagendar' }).className).toContain(
+      'text-gold',
+    )
+    expect(await axe(container)).toHaveNoViolations()
+  })
 })

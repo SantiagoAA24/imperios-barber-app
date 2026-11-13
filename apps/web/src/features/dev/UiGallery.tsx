@@ -2,11 +2,16 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   BarberPill,
+  AppointmentCard,
   BrandSeal,
   Button,
+  Checkbox,
   DayChip,
+  Dialog,
   Notice,
+  ProductCard,
   ServiceCard,
+  Skeleton,
   StepHeader,
   SummaryCard,
   TextField,
@@ -46,6 +51,7 @@ export default function UiGallery() {
   const [day, setDay] = useState(13)
   const [slot, setSlot] = useState('11:00 am')
   const [name, setName] = useState('')
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
     <div className="min-h-dvh bg-bg">
@@ -182,6 +188,72 @@ export default function UiGallery() {
             <StepHeader step={2} title="Barbero" />
             <StepHeader step={3} title="Día y hora" />
           </div>
+        </Block>
+
+        <Block title="Button · danger, danger-outline, ghost">
+          <div className="flex flex-col gap-[12px]">
+            <Button block variant="danger">
+              Sí, cancelar cita
+            </Button>
+            <Button block variant="danger-outline">
+              Cancelar cita
+            </Button>
+            <Button block size="md" variant="ghost">
+              Prefiero reprogramar
+            </Button>
+          </div>
+        </Block>
+
+        <Block title="Checkbox">
+          <Checkbox>Acepto el tratamiento de mis datos personales.</Checkbox>
+          <Checkbox error="Necesitamos tu autorización para agendar.">Acepto</Checkbox>
+        </Block>
+
+        <Block title="DayChip · sin cupo">
+          <div className="flex gap-10">
+            <DayChip weekday="Sáb" day={14} selected={false} />
+            <DayChip weekday="Dom" day={15} selected={false} disabled note="sin cupo" />
+          </div>
+        </Block>
+
+        <Block title="Skeleton">
+          <div className="grid grid-cols-4 gap-10">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} className="h-control-46" />
+            ))}
+          </div>
+        </Block>
+
+        <Block title="AppointmentCard">
+          <AppointmentCard
+            date="viernes 13 nov"
+            time="11:00 am"
+            service="Corte + barba"
+            barber="Barbero 1"
+            duration="~45 min"
+            totalCop={27000}
+          />
+        </Block>
+
+        <Block title="ProductCard">
+          <div className="grid grid-cols-2 gap-10">
+            <ProductCard name="Cera mate" priceCop={28000} inStock />
+            <ProductCard name="Bálsamo para barba" priceCop={30000} inStock={false} />
+          </div>
+        </Block>
+
+        <Block title="Dialog">
+          <Button block variant="secondary" onClick={() => setDialogOpen(true)}>
+            Abrir diálogo
+          </Button>
+          <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} title="¿Cancelar tu cita?">
+            <p className="m-0 text-small text-text-muted">
+              Si cancelas, ese horario queda libre para otros clientes.
+            </p>
+            <Button block variant="secondary" data-autofocus onClick={() => setDialogOpen(false)}>
+              Mantener mi cita
+            </Button>
+          </Dialog>
         </Block>
 
         <Block title="SummaryCard">

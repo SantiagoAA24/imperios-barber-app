@@ -1,4 +1,4 @@
-.PHONY: db-up db-down dev dev-api dev-web test lint types
+.PHONY: db-up db-down dev dev-api dev-web test lint types e2e
 
 db-up:
 	docker compose up -d --wait db
@@ -35,3 +35,7 @@ types:
 	pnpm --filter @imperio/tokens build
 	cd apps/api && uv run python -m app.export_openapi
 	pnpm --filter web types
+
+# E2E con Playwright: necesita PostgreSQL (make db-up). Recrea y siembra la base imperio_e2e.
+e2e:
+	pnpm --filter web e2e

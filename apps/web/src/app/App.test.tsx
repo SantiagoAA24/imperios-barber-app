@@ -46,24 +46,46 @@ function renderAt(path: string) {
 beforeEach(() => vi.unstubAllGlobals())
 afterEach(() => vi.unstubAllGlobals())
 
+const emptyList = () => json(200, [])
+
 describe('rutas públicas', () => {
-  it('"/" muestra Próximamente con el nombre de la pantalla', () => {
+  it('"/" muestra la pantalla de agendar', async () => {
+    stubApi({ 'GET /api/v1/public/services': emptyList, 'GET /api/v1/public/barbers': emptyList })
     renderAt('/')
-    expect(screen.getByRole('heading', { name: 'Próximamente' })).toBeTruthy()
-    expect(screen.getByText('Agendar')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Agenda tu cita', level: 1 })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Productos' })).toBeTruthy()
+    await waitFor(() => expect(screen.queryByText('Cargando servicios…')).toBeNull())
   })
 
-  it.each([
-    ['/cita/abc123', 'Tu cita'],
-    ['/productos', 'Productos'],
-  ])('%s muestra su pantalla', (path, name) => {
-    renderAt(path)
-    expect(screen.getByText(name)).toBeTruthy()
+  it('/cita/:token con un token desconocido ofrece volver a agendar', async () => {
+    stubApi({
+      'GET /api/v1/public/appointments/abc123': () =>
+        json(404, {
+          code: 'appointment_not_found',
+          message: 'No encontramos esta cita.',
+          details: {},
+        }),
+    })
+    renderAt('/cita/abc123')
+    expect(await screen.findByRole('heading', { name: 'No encontramos tu cita' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Agendar una cita' }).getAttribute('href')).toBe('/')
+  })
+
+  it('/productos muestra el catálogo', async () => {
+    stubApi({ 'GET /api/v1/public/products': emptyList })
+    renderAt('/productos')
+    expect(screen.getByRole('heading', { name: 'Productos del local' })).toBeTruthy()
+    await waitFor(() =>
+      expect(screen.getByText('Se compran directamente en el local.')).toBeTruthy(),
+    )
   })
 
   it('/privacidad muestra el texto provisional', () => {
     renderAt('/privacidad')
-    expect(screen.getByRole('heading', { name: 'Privacidad', level: 1 })).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: 'Política de tratamiento de datos', level: 1 }),
+    ).toBeTruthy()
+    expect(screen.getByText('PENDIENTE DE REVISIÓN LEGAL')).toBeTruthy()
   })
 
   it('/offline muestra la página sin conexión', () => {

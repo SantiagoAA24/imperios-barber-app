@@ -1,8 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
+import { AppointmentPage } from '../features/appointment/AppointmentPage'
 import { Login } from '../features/auth/Login'
+import { BookingPage } from '../features/booking/BookingPage'
+import { CatalogPage } from '../features/catalog/CatalogPage'
 import { PublicLayout } from './layouts/PublicLayout'
-import { ComingSoon } from './pages/ComingSoon'
 import { NotFound } from './pages/NotFound'
 import { Offline } from './pages/Offline'
 import { Privacy } from './pages/Privacy'
@@ -38,9 +40,9 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
-        <Route index element={<ComingSoon name="Agendar" />} />
-        <Route path="cita/:token" element={<ComingSoon name="Tu cita" />} />
-        <Route path="productos" element={<ComingSoon name="Productos" />} />
+        <Route index element={<BookingPage />} />
+        <Route path="cita/:token" element={<AppointmentPage />} />
+        <Route path="productos" element={<CatalogPage />} />
         <Route path="ingresar" element={<Login />} />
         <Route path="privacidad" element={<Privacy />} />
         <Route path="offline" element={<Offline />} />

@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { formatCOP, formatDayLong, formatDuration, formatTime } from './format'
+import {
+  addDays,
+  bogotaDay,
+  dayOfMonth,
+  formatCOP,
+  formatDayLong,
+  formatDuration,
+  formatTime,
+  formatWeekdayShort,
+} from './format'
 
 declare const process: { env: Record<string, string | undefined> }
 
@@ -58,5 +67,27 @@ describe('formatDuration', () => {
     expect(formatDuration(60)).toBe('1 hora')
     expect(formatDuration(90)).toBe('1 h 30 min')
     expect(formatDuration(120)).toBe('2 horas')
+  })
+})
+
+describe('días de calendario en Bogotá', () => {
+  it('bogotaDay usa la zona del negocio, no la del navegador ni UTC', () => {
+    // 03:00 UTC del 14 son las 22:00 del 13 en Bogotá.
+    expect(bogotaDay('2026-11-14T03:00:00Z')).toBe('2026-11-13')
+    expect(bogotaDay('2026-11-14T05:00:00Z')).toBe('2026-11-14')
+    process.env.TZ = 'Asia/Tokyo'
+    expect(bogotaDay('2026-11-14T03:00:00Z')).toBe('2026-11-13')
+  })
+
+  it('addDays cruza fin de mes y de año', () => {
+    expect(addDays('2026-11-13', 1)).toBe('2026-11-14')
+    expect(addDays('2026-11-30', 1)).toBe('2026-12-01')
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01')
+  })
+
+  it('formatWeekdayShort y dayOfMonth', () => {
+    expect(formatWeekdayShort('2026-11-13')).toBe('Vie')
+    expect(formatWeekdayShort('2026-11-18')).toBe('Mié')
+    expect(dayOfMonth('2026-11-13')).toBe(13)
   })
 })

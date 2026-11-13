@@ -59,3 +59,34 @@ export function formatDuration(minutes: number): string {
   if (rest === 0) return hours === 1 ? '1 hora' : `${hours} horas`
   return `${hours} h ${rest} min`
 }
+
+const isoDayFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+/** bogotaDay('2026-11-14T03:00:00Z') -> '2026-11-13' (el día de calendario en Bogotá). */
+export function bogotaDay(value: string | Date): string {
+  const parts = isoDayFormat.formatToParts(toDate(value))
+  return `${part(parts, 'year')}-${part(parts, 'month')}-${part(parts, 'day')}`
+}
+
+/** addDays('2026-11-30', 1) -> '2026-12-01' */
+export function addDays(day: string, days: number): string {
+  return bogotaDay(new Date(toDate(day).getTime() + days * 86_400_000))
+}
+
+const weekdayShortFormat = new Intl.DateTimeFormat('es-CO', { timeZone: ZONE, weekday: 'short' })
+
+/** formatWeekdayShort('2026-11-13') -> 'Vie' */
+export function formatWeekdayShort(value: string | Date): string {
+  const text = part(weekdayShortFormat.formatToParts(toDate(value)), 'weekday').replace(/\./g, '')
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/** dayOfMonth('2026-11-13') -> 13 */
+export function dayOfMonth(value: string | Date): number {
+  return Number(bogotaDay(value).slice(8, 10))
+}
