@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.orm import Session
 
+from app.availability.next_free import next_free_start
 from app.availability.slots import Interval, compute_slots
 from app.models import (
     Appointment,
@@ -66,36 +67,39 @@ def candidate_barbers(
     return list(session.scalars(stmt))
 
 
-def availability_for(
+@dataclass
+class DayData:
+    """Lo que ocupa el día de cada barbero candidato, ya en intervalos (sin cálculo todavía)."""
+
+    schedules: dict[uuid.UUID, list[tuple[time, time]]]
+    time_off: dict[uuid.UUID, list[Interval]]
+    own: dict[uuid.UUID, list[Interval]]
+    resource_busy: list[Interval]
+
+
+def load_day(
     session: Session,
     business: Business,
-    barbers: list[Barber],
+    barber_ids: list[uuid.UUID],
     *,
-    duration_min: int,
     resource_id: uuid.UUID | None,
     day: date,
-    now: datetime,
     ignore_appointment_id: uuid.UUID | None = None,
-) -> DayAvailability:
+) -> DayData:
     tz = ZoneInfo(business.timezone)
     day_start, day_end = local_day_bounds(day, tz)
-    ids = [b.id for b in barbers]
-    result = DayAvailability(barbers=barbers)
-    if not ids:
-        return result
-
-    schedules: dict[uuid.UUID, list[tuple[time, time]]] = {i: [] for i in ids}
+    schedules: dict[uuid.UUID, list[tuple[time, time]]] = {i: [] for i in barber_ids}
     for row in session.scalars(
         select(BarberSchedule).where(
-            BarberSchedule.barber_id.in_(ids), BarberSchedule.weekday == day.weekday()
+            BarberSchedule.barber_id.in_(barber_ids), BarberSchedule.weekday == day.weekday()
         )
     ):
         schedules[row.barber_id].append((row.start_time, row.end_time))
 
-    time_off: dict[uuid.UUID, list[Interval]] = {i: [] for i in ids}
+    time_off: dict[uuid.UUID, list[Interval]] = {i: [] for i in barber_ids}
     for off in session.scalars(
         select(BarberTimeOff).where(
-            BarberTimeOff.barber_id.in_(ids),
+            BarberTimeOff.barber_id.in_(barber_ids),
             BarberTimeOff.starts_at < day_end,
             BarberTimeOff.ends_at > day_start,
         )
@@ -103,7 +107,7 @@ def availability_for(
         time_off[off.barber_id].append(Interval(off.starts_at, off.ends_at))
 
     # Citas activas del día de los candidatos y, si el servicio usa un recurso, de cualquiera.
-    busy_filter: ColumnElement[bool] = Appointment.barber_id.in_(ids)
+    busy_filter: ColumnElement[bool] = Appointment.barber_id.in_(barber_ids)
     if resource_id is not None:
         busy_filter = busy_filter | (Appointment.resource_id == resource_id)
     stmt = select(Appointment).where(
@@ -115,7 +119,7 @@ def availability_for(
     )
     if ignore_appointment_id is not None:
         stmt = stmt.where(Appointment.id != ignore_appointment_id)
-    own: dict[uuid.UUID, list[Interval]] = {i: [] for i in ids}
+    own: dict[uuid.UUID, list[Interval]] = {i: [] for i in barber_ids}
     resource_busy: list[Interval] = []
     for appt in session.scalars(stmt):
         span = Interval(appt.starts_at, appt.ends_at)
@@ -123,21 +127,77 @@ def availability_for(
             own[appt.barber_id].append(span)
         if resource_id is not None and appt.resource_id == resource_id:
             resource_busy.append(span)
+    return DayData(schedules, time_off, own, resource_busy)
 
+
+def availability_for(
+    session: Session,
+    business: Business,
+    barbers: list[Barber],
+    *,
+    duration_min: int,
+    resource_id: uuid.UUID | None,
+    day: date,
+    now: datetime,
+    ignore_appointment_id: uuid.UUID | None = None,
+    min_lead_min: int | None = None,
+) -> DayAvailability:
+    """``min_lead_min`` sustituye el margen del negocio (el barbero agenda sin margen)."""
+    tz = ZoneInfo(business.timezone)
+    ids = [b.id for b in barbers]
+    result = DayAvailability(barbers=barbers)
+    if not ids:
+        return result
+    data = load_day(
+        session,
+        business,
+        ids,
+        resource_id=resource_id,
+        day=day,
+        ignore_appointment_id=ignore_appointment_id,
+    )
+    lead = business.min_lead_min if min_lead_min is None else min_lead_min
     for barber in barbers:
-        result.day_load[barber.id] = len(own[barber.id])
+        result.day_load[barber.id] = len(data.own[barber.id])
         result.by_barber[barber.id] = compute_slots(
             day=day,
             tz=tz,
-            working=schedules[barber.id],
-            blocked=[*time_off[barber.id], *own[barber.id]],
-            resource_busy=resource_busy,
+            working=data.schedules[barber.id],
+            blocked=[*data.time_off[barber.id], *data.own[barber.id]],
+            resource_busy=data.resource_busy,
             duration_min=duration_min,
             slot_min=business.slot_min,
             now=now,
-            min_lead_min=business.min_lead_min,
+            min_lead_min=lead,
         )
     return result
+
+
+def barber_next_free(
+    session: Session,
+    business: Business,
+    barber: Barber,
+    service: Service,
+    *,
+    now: datetime,
+) -> datetime | None:
+    """Primer inicio libre de hoy para ``barber`` (turno sin cita); ``None`` si ya no cabe."""
+    tz = ZoneInfo(business.timezone)
+    data = load_day(
+        session,
+        business,
+        [barber.id],
+        resource_id=service.resource_id,
+        day=now.astimezone(tz).date(),
+    )
+    return next_free_start(
+        now=now,
+        tz=tz,
+        working=data.schedules[barber.id],
+        blocked=[*data.time_off[barber.id], *data.own[barber.id]],
+        resource_busy=data.resource_busy,
+        duration_min=service.duration_min,
+    )
 
 
 def get_availability(

@@ -783,7 +783,7 @@
           "barbero"
         ],
         "summary": "Ping",
-        "description": "Ruta de apoyo para probar permisos; se reemplaza en fases siguientes.",
+        "description": "Ruta de apoyo para probar permisos.",
         "operationId": "ping_api_v1_me_ping_get",
         "responses": {
           "200": {
@@ -812,6 +812,831 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/appointments": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "List Appointments",
+        "operationId": "list_appointments_api_v1_me_appointments_get",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date"
+            }
+          },
+          {
+            "name": "include_cancelled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Cancelled"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgendaOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Create Appointment",
+        "operationId": "create_appointment_api_v1_me_appointments_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeCreateAppointmentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeAppointmentOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/appointments/{appointment_id}": {
+      "patch": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Update Appointment",
+        "operationId": "update_appointment_api_v1_me_appointments__appointment_id__patch",
+        "parameters": [
+          {
+            "name": "appointment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Appointment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStatusIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeAppointmentOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/next-free": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Next Free",
+        "operationId": "next_free_api_v1_me_next_free_get",
+        "parameters": [
+          {
+            "name": "service_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Service Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextFreeOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/availability": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Own Availability",
+        "description": "Horarios libres del propio barbero para elegir hora en una cita manual.",
+        "operationId": "own_availability_api_v1_me_availability_get",
+        "parameters": [
+          {
+            "name": "service_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Service Id"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnAvailabilityOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/schedule": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Get Schedule",
+        "operationId": "get_schedule_api_v1_me_schedule_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Put Schedule",
+        "operationId": "put_schedule_api_v1_me_schedule_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/time-off": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "List Time Off",
+        "operationId": "list_time_off_api_v1_me_time_off_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeOffListOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Create Time Off",
+        "operationId": "create_time_off_api_v1_me_time_off_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeOffIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeOffCreatedOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/time-off/{time_off_id}": {
+      "delete": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Delete Time Off",
+        "operationId": "delete_time_off_api_v1_me_time_off__time_off_id__delete",
+        "parameters": [
+          {
+            "name": "time_off_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Time Off Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -864,6 +1689,40 @@
   },
   "components": {
     "schemas": {
+      "AgendaOut": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "appointments": {
+            "items": {
+              "$ref": "#/components/schemas/MeAppointmentOut"
+            },
+            "type": "array",
+            "title": "Appointments"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DaySummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "appointments",
+          "summary"
+        ],
+        "title": "AgendaOut"
+      },
+      "AppointmentSource": {
+        "type": "string",
+        "enum": [
+          "online",
+          "manual",
+          "walk_in"
+        ],
+        "title": "AppointmentSource"
+      },
       "AppointmentStatus": {
         "type": "string",
         "enum": [
@@ -958,6 +1817,43 @@
         ],
         "title": "ClientIn"
       },
+      "ConflictOut": {
+        "properties": {
+          "appointment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Appointment Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "client_name": {
+            "type": "string",
+            "title": "Client Name"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "appointment_id",
+          "starts_at",
+          "ends_at",
+          "client_name",
+          "service_name"
+        ],
+        "title": "ConflictOut",
+        "description": "Cita reservada que quedó fuera del nuevo horario o dentro de una ausencia. No se cancela."
+      },
       "CreateAppointmentIn": {
         "properties": {
           "service_id": {
@@ -1026,6 +1922,39 @@
         ],
         "title": "CreatedAppointment"
       },
+      "DaySummary": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "attended": {
+            "type": "integer",
+            "title": "Attended"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "no_show": {
+            "type": "integer",
+            "title": "No Show"
+          },
+          "revenue_cop": {
+            "type": "integer",
+            "title": "Revenue Cop"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "attended",
+          "pending",
+          "no_show",
+          "revenue_cop"
+        ],
+        "title": "DaySummary"
+      },
       "ErrorBody": {
         "properties": {
           "code": {
@@ -1084,6 +2013,234 @@
           "password"
         ],
         "title": "LoginRequest"
+      },
+      "MeAppointmentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppointmentStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "service": {
+            "$ref": "#/components/schemas/MeServiceOut"
+          },
+          "client": {
+            "$ref": "#/components/schemas/MeClientOut"
+          },
+          "is_overdue": {
+            "type": "boolean",
+            "title": "Is Overdue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "source",
+          "starts_at",
+          "ends_at",
+          "service",
+          "client",
+          "is_overdue"
+        ],
+        "title": "MeAppointmentOut"
+      },
+      "MeClientOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone_masked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Masked"
+          },
+          "phone_e164": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone E164"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "phone_masked",
+          "phone_e164"
+        ],
+        "title": "MeClientOut"
+      },
+      "MeCreateAppointmentIn": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "walk_in": {
+            "type": "boolean",
+            "title": "Walk In",
+            "default": false
+          },
+          "client": {
+            "$ref": "#/components/schemas/WalkInClientIn"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "manual",
+                  "walk_in"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "client"
+        ],
+        "title": "MeCreateAppointmentIn"
+      },
+      "MeServiceOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "price_cop": {
+            "type": "integer",
+            "title": "Price Cop"
+          },
+          "uses_resource": {
+            "type": "boolean",
+            "title": "Uses Resource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "duration_min",
+          "price_cop",
+          "uses_resource"
+        ],
+        "title": "MeServiceOut"
+      },
+      "NextFreeOut": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at"
+        ],
+        "title": "NextFreeOut"
+      },
+      "OwnAvailabilityOut": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/OwnSlotOut"
+            },
+            "type": "array",
+            "title": "Slots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "slots"
+        ],
+        "title": "OwnAvailabilityOut"
+      },
+      "OwnSlotOut": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at"
+        ],
+        "title": "OwnSlotOut"
       },
       "PingOut": {
         "properties": {
@@ -1337,6 +2494,71 @@
         ],
         "title": "RescheduleIn"
       },
+      "ScheduleBlock": {
+        "properties": {
+          "weekday": {
+            "type": "integer",
+            "title": "Weekday"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "time",
+            "title": "Start Time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "time",
+            "title": "End Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weekday",
+          "start_time",
+          "end_time"
+        ],
+        "title": "ScheduleBlock"
+      },
+      "ScheduleIn": {
+        "properties": {
+          "schedule": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleBlock"
+            },
+            "type": "array",
+            "title": "Schedule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule"
+        ],
+        "title": "ScheduleIn"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "schedule": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleBlock"
+            },
+            "type": "array",
+            "title": "Schedule"
+          },
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictOut"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule",
+          "conflicts"
+        ],
+        "title": "ScheduleOut"
+      },
       "ServiceBrief": {
         "properties": {
           "id": {
@@ -1388,6 +2610,129 @@
           "barber_ids"
         ],
         "title": "SlotOut"
+      },
+      "TimeOffCreatedOut": {
+        "properties": {
+          "time_off": {
+            "$ref": "#/components/schemas/TimeOffOut"
+          },
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictOut"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time_off",
+          "conflicts"
+        ],
+        "title": "TimeOffCreatedOut"
+      },
+      "TimeOffIn": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "TimeOffIn"
+      },
+      "TimeOffListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimeOffOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "TimeOffListOut"
+      },
+      "TimeOffOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "starts_at",
+          "ends_at",
+          "reason"
+        ],
+        "title": "TimeOffOut"
+      },
+      "UpdateStatusIn": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "attended",
+              "no_show",
+              "cancelled"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "UpdateStatusIn"
       },
       "UserOut": {
         "properties": {
@@ -1459,6 +2804,30 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WalkInClientIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "WalkInClientIn"
       }
     }
   }

@@ -86,7 +86,7 @@ def check_day_in_range(business: Business, day: date, now: datetime) -> None:
         )
 
 
-def _iso(business: Business, instant: datetime) -> str:
+def iso_local(business: Business, instant: datetime) -> str:
     return instant.astimezone(ZoneInfo(business.timezone)).isoformat()
 
 
@@ -129,22 +129,22 @@ def public_availability(
     service = load_service(session, business, service_id)
     _barbers_for(session, business, barber_id)
     avail = get_availability(session, business, service, barber_id, day, now=now)
-    return [{"starts_at": _iso(business, s), "barber_ids": ids} for s, ids in avail.slots()]
+    return [{"starts_at": iso_local(business, s), "barber_ids": ids} for s, ids in avail.slots()]
 
 
-def _alternatives(
+def alternatives(
     business: Business, avail: DayAvailability, target: datetime
 ) -> list[dict[str, object]]:
     """Hasta 3 horarios libres del mismo día, los más cercanos al pedido, en orden cronológico."""
     options = [(s, ids) for s, ids in avail.slots() if s != target]
     nearest = sorted(options, key=lambda o: (abs(o[0] - target), o[0]))[:MAX_ALTERNATIVES]
     return [
-        {"starts_at": _iso(business, s), "barber_ids": [str(i) for i in ids]}
+        {"starts_at": iso_local(business, s), "barber_ids": [str(i) for i in ids]}
         for s, ids in sorted(nearest)
     ]
 
 
-def _slot_unavailable(
+def slot_unavailable(
     session: Session,
     business: Business,
     barbers: list[Barber],
@@ -155,6 +155,7 @@ def _slot_unavailable(
     now: datetime,
     target: datetime,
     ignore_appointment_id: uuid.UUID | None = None,
+    min_lead_min: int | None = None,
 ) -> ApiError:
     # Se recalcula con lo que ya está confirmado en la base (incluida la cita que ganó la carrera).
     fresh = availability_for(
@@ -166,12 +167,13 @@ def _slot_unavailable(
         day=day,
         now=now,
         ignore_appointment_id=ignore_appointment_id,
+        min_lead_min=min_lead_min,
     )
     return ApiError(
         409,
         "slot_unavailable",
         "Ese horario ya no está disponible. Elige otro de los que te mostramos.",
-        {"alternatives": _alternatives(business, fresh, target)},
+        {"alternatives": alternatives(business, fresh, target)},
     )
 
 
@@ -247,7 +249,7 @@ def create_appointment(
     free = [b for b in barbers if starts in avail.by_barber[b.id]]
 
     def unavailable() -> ApiError:
-        return _slot_unavailable(
+        return slot_unavailable(
             session,
             business,
             barbers,
@@ -426,7 +428,7 @@ def reschedule_appointment(
     )
 
     def unavailable() -> ApiError:
-        return _slot_unavailable(
+        return slot_unavailable(
             session,
             business,
             barbers,
