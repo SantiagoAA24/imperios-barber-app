@@ -1,0 +1,33 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md, docs/arquitectura.md (secciones 2 y 7), design-system/README.md, design-system/tokens.json y, para CADA componente en design-system/components/<Nombre>/, su README.md y su preview.html: son la fuente de verdad visual. Si algo de este prompt contradice esos archivos, mandan los archivos. La API ya tiene catálogo y auth (fases 2 y 3). Esta es la FASE 4: sistema de componentes, rutas, cliente de API y PWA. Todavía NO se construyen las pantallas de negocio.
+
+OBJETIVO
+Una app React instalable en el celular, con los componentes del sistema de diseño ya probados, las rutas y layouts de las tres áreas, un cliente de API tipado y el inicio de sesión del personal funcionando.
+
+ENTREGABLES
+1. packages/tokens: convierte design-system/tokens.json en src/tokens.css con variables CSS bajo :root. Nombres: --color-bg, --color-surface, --color-surface-selected, --color-surface-muted, --color-line, --color-line-strong, --color-gold, --color-gold-edge, --color-on-gold, --color-text, --color-text-muted, --color-text-disabled, --color-success, --color-danger; --font-display (Cormorant Garamond), --font-body (Inter); --space-4/8/10/14/20/36; --radius-12/14/18/pill/round; --control-46/52/54; --touch-min: 44px. Genera el CSS con un script (node scripts/build-tokens.mjs) para que el JSON siga siendo la única fuente. Los valores exactos están en tokens.json.
+2. apps/web: Tailwind CSS v4 (@tailwindcss/vite) con @theme que apunte a esas variables (clases como bg-surface, text-gold, rounded-card). Fuentes autoalojadas con @fontsource/cormorant-garamond (500, 600, 700) y @fontsource/inter (400, 500, 600), subconjunto latin; con font-display: swap.
+3. Script scripts/check-no-hex.mjs que falle si encuentra colores hexadecimales o rgb() en apps/web/src fuera de tokens.css; úsalo en make lint y en el CI.
+4. Componentes en apps/web/src/components/, uno por carpeta (Nombre.tsx, Nombre.test.tsx, index.ts): Button (variant primary|secondary, size, disabled, loading, icono opcional), ServiceCard (nombre, duración, precio, nota, selected), BarberPill, DayChip, TimeSlot, TextField (label, hint, error, prefijo '+57'), StepHeader, SummaryCard, Notice (tone info|success|danger), BrandSeal. Reglas: elementos HTML reales (button, a, label, input); switches con role='switch' y aria-checked; selección con aria-pressed o aria-checked, nunca solo por color; área táctil mínima de 44 px; foco visible con anillo dorado de 2px y offset de 2px; estados hover, active, disabled y loading; todo el texto en español. Props tipadas, sin any.
+5. Página de desarrollo /ui (solo en modo dev) que muestre cada componente en todos sus estados, a 390 px de ancho, para comparar a ojo con preview.html.
+6. apps/web/src/lib/format.ts con formatCOP(22000) -> '$22.000', formatTime(iso) -> '10:30 am' (minúscula, sin puntos, hora de America/Bogota aunque el navegador esté en otra zona), formatDayLong(iso) -> 'viernes 13 nov', formatDuration(45) -> '45 min' y formatDuration(60) -> '1 hora'. Con pruebas unitarias, incluida una con TZ distinta a Bogotá.
+7. Cliente de API: script apps/api/app/export_openapi.py que escribe el OpenAPI en apps/web/openapi.json; openapi-typescript genera apps/web/src/lib/api/schema.d.ts; openapi-fetch como cliente en lib/api/client.ts con credentials: 'include' y un interceptor que ante 401 'token_expired' llama /auth/refresh una vez y reintenta. Implementa make types para encadenar todo, y en el CI ejecuta make types seguido de git diff --exit-code para detectar un esquema desactualizado.
+8. TanStack Query con QueryClient (staleTime 60 s para catálogo, 0 para disponibilidad) y hooks useServices, useBarbers, useProducts, useBusiness conectados a las rutas públicas reales.
+9. React Router con TODAS las rutas de la sección 7 del documento más /ingresar y /privacidad (texto provisional), cargando las áreas barbero y admin con lazy() y mostrando una página 'Próximamente' con el nombre de la pantalla. Layouts: PublicLayout (columna máxima de 480 px centrada sobre fondo --color-bg), BarberLayout (barra inferior de 3 pestañas: Agenda, Nueva cita, Mi horario) y AdminLayout (barra lateral con Resumen, Agenda, Servicios y productos, Barberos, Clientes). RutaProtegida que consulta /auth/me y redirige a /ingresar si no hay sesión o a la home del rol si el rol no corresponde.
+10. Pantalla /ingresar funcional: correo y contraseña con TextField, errores del API mostrados en un Notice danger, y redirección a /admin o /barbero según el rol. Con prueba que simula el flujo.
+11. PWA con vite-plugin-pwa: manifest (name 'Imperio Barber', short_name 'Imperio', lang 'es-CO', display 'standalone', start_url '/', theme_color y background_color = valor de --color-bg), íconos 192, 512 y maskable 512 generados desde un script a partir del BrandSeal (fondo negro, sello dorado; el logo vectorial aún no existe, deja un TODO visible en el README), service worker que precachea el shell, cachea con stale-while-revalidate GET /api/v1/public/business, /services, /barbers y /products, y NUNCA cachea /availability, /appointments ni /auth (NetworkOnly). Página /offline amigable cuando no hay red y la ruta no está en caché.
+12. Pruebas con Vitest + Testing Library + vitest-axe: cada componente sin violaciones de axe; pruebas de estado (seleccionado, deshabilitado, cargando, error); una prueba que verifica con getComputedStyle que Button, TimeSlot, DayChip y ServiceCard miden al menos 44 px de alto.
+
+RESTRICCIONES
+- Ningún color, tamaño de fuente o espaciado fuera de los tokens; sin estilos en línea salvo valores dinámicos.
+- Sin librerías de componentes (MUI, Chakra, shadcn) ni de formularios pesadas; para formularios usa estado controlado.
+- No dupliques tipos del API a mano: salen del OpenAPI generado.
+- Un componente por commit, con mensaje en español.
+- Pregunta antes de añadir dependencias distintas de las nombradas (vitest-axe, @fontsource/*, openapi-typescript, openapi-fetch, vite-plugin-pwa, @tanstack/react-query, react-router).
+
+VERIFICACIÓN (ejecútala y resume la salida)
+make types && make lint && make test && pnpm --filter web build && pnpm --filter web preview
+En Chrome con DevTools > Application: manifest sin errores, service worker activo y botón 'Instalar' disponible. Sin red, la home carga y /offline aparece para rutas no cacheadas. Entra con admin@imperio.test y verifica la redirección por rol.
+
+AL TERMINAR
+Incluye una tabla componente -> estados implementados -> prueba de accesibilidad, capturas o descripción de /ui y cualquier diferencia que hayas tenido que introducir respecto de preview.html, con el motivo. Rama: fase-4-frontend-base.

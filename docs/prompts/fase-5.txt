@@ -1,0 +1,48 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md y docs/arquitectura.md (secciones 3, 5, 6 y 7). Las fases 0 a 4 están hechas: API con disponibilidad y reservas, componentes del sistema de diseño, cliente de API tipado, rutas y PWA. Las pantallas de referencia están en design/screens/: agendar.dc.html (prototipo de agendamiento, estilo A), cita-confirmada.dc.html, catalogo.dc.html y cliente-cancelar.dc.html. Son componentes HTML de diseño: léelos para copiar estructura, textos, espaciados y estados; NO los importes. Esta es la FASE 5: todo lo que ve el cliente, sin registro.
+
+OBJETIVO
+Que un cliente nuevo, desde su celular, agende en menos de 60 segundos, vea su cita, la reprograme o la cancele con el enlace, y consulte el catálogo; con todos los estados de error cubiertos.
+
+ENTREGABLES
+1. Pantalla de agendamiento en la ruta '/' (apps/web/src/features/booking/), en el orden y con los textos de agendar.dc.html:
+   - Cabecera con BrandSeal, 'Imperio Barber' y enlace 'Productos'.
+   - Paso 1 Servicio: ServiceCard por cada servicio de useServices (nombre, duración con formatDuration, precio con formatCOP; nota 'Incluye vaporizador' cuando uses_resource) y BarberPill con 'Cualquiera' seleccionado por defecto más los barberos de useBarbers.
+   - Paso 2 Día y hora: 7 DayChip desde hoy. Cuando haya servicio y barbero elegidos, consulta /public/availability de los 7 días en paralelo (useQueries) y deshabilita con la palabra 'sin cupo' los días sin horarios. Al elegir día, muestra los TimeSlot con formatTime. Al cambiar servicio o barbero, limpia la hora elegida. Esqueletos de carga mientras llegan los datos.
+   - Paso 3 Tus datos: TextField de nombre; TextField de celular con prefijo '+57', inputMode 'tel', autocompletar 'tel-national'; casilla de consentimiento 'Acepto el tratamiento de mis datos personales' con enlace a /privacidad; campo trampa 'website' fuera de pantalla con CSS (no display:none), aria-hidden, tabIndex -1 y autocomplete off.
+   - SummaryCard fija abajo con 'Corte + barba · viernes 13 nov · 12:30 pm' (usa los datos reales), el total y el botón 'Confirmar cita', deshabilitado hasta que todo sea válido; mientras envía muestra estado de carga y bloquea doble clic.
+   - Validación en cliente al salir del campo: nombre de 2 a 60 caracteres; celular colombiano de 10 dígitos que empiece por 3 (acepta espacios y prefijo 57/+57). Los errores del API (code invalid_phone, too_many_active, consent_required) se muestran bajo el campo o en un Notice danger con el message que traiga la API.
+   - Al recibir 201: guarda el token en localStorage con la clave 'imperio:ultima-cita' (dentro de try/catch) y navega con replace a /cita/<token>.
+   - Al recibir 409 slot_unavailable: Notice danger 'Ese horario se acaba de ocupar. Elige otro.', refresca la disponibilidad, conserva lo que el usuario escribió y muestra hasta 3 TimeSlot de details.alternatives para elegir con un toque.
+   - Error de red o 5xx: Notice con botón 'Reintentar'.
+   - Accesibilidad: una región aria-live='polite' que anuncie el resumen al cambiar la selección; foco al encabezado del paso siguiente solo si el usuario lo activó con teclado; desplazamiento suave desactivado con prefers-reduced-motion.
+2. Pantalla /cita/:token (features/appointment/) según cita-confirmada.dc.html: resumen (servicio, fecha larga, hora, barbero, total), y la nota 'Llega a tu hora: esperamos hasta {tolerance_min} minutos después.' con el valor del negocio. Estados: booked (acciones habilitadas según can_cancel y can_reschedule), cancelled ('Cita cancelada' con enlace a agendar otra), attended y no_show (solo lectura con mensaje amable), token inválido (404 con enlace a '/'). Acciones:
+   - 'Agregar al calendario': genera un archivo .ics en el navegador (VCALENDAR 2.0, UID único, DTSTART y DTEND en UTC, SUMMARY 'Cita en Imperio Barber', DESCRIPTION con servicio y precio) y lo descarga como imperio-cita.ics.
+   - 'Reprogramar': muestra el mismo selector de día y hora con la disponibilidad del mismo servicio y barbero; confirma con /reschedule; si responde 409 usa el mismo manejo de alternativas.
+   - 'Cancelar cita': abre un diálogo accesible (elemento dialog con foco atrapado, Escape para cerrar, foco devuelto al botón) según cliente-cancelar.dc.html; al confirmar llama /cancel; si responde 409 too_late_to_cancel muestra el message de la API en un Notice y cierra el diálogo.
+3. Catálogo en /productos (features/catalog/) según catalogo.dc.html con useProducts: tarjeta con imagen (o marcador si image_url es nulo), nombre, descripción, precio y disponibilidad como palabra + ícono ('Disponible' o 'Agotado'), nunca solo color. Texto fijo: 'Se compran directamente en el local.' Sin carrito.
+4. /privacidad con texto provisional de política de tratamiento de datos (Ley 1581 de 2012): qué se guarda (nombre, celular, historial de citas), para qué (gestionar y recordar citas), cómo ejercer derechos. Marca visible 'PENDIENTE DE REVISIÓN LEGAL' en el código y en el README.
+5. Pruebas E2E con Playwright (@playwright/test y @axe-core/playwright, dependencias autorizadas) en apps/web/e2e/, viewport 390x844, contra la API real con base de datos de pruebas sembrada (scripts/e2e-setup.sh crea, migra y siembra; playwright.config.ts levanta API y web con webServer). Pruebas:
+   - Camino feliz: Corte + barba, 'Cualquiera', primer día con cupo, primer horario, datos válidos, consentimiento, confirmar -> llega a /cita/<token> y muestra servicio, fecha y total; recargar la página conserva la cita.
+   - Carrera: dos contextos de navegador eligen el mismo horario; el segundo recibe el Notice de horario ocupado con alternativas y logra reservar una de ellas.
+   - Cancelar: desde /cita/<token> cancela con confirmación, ve 'Cita cancelada' y el horario vuelve a aparecer en la pantalla de agendar.
+   - Reprogramar: mueve la cita a otro horario y ve la nueva hora.
+   - Validación: celular inválido muestra el error; el botón queda deshabilitado sin consentimiento.
+   - Catálogo: se ven los 8 productos y los de out_of_stock dicen 'Agotado'.
+   - Accesibilidad: escaneo axe de '/', '/cita/<token>' y '/productos' sin violaciones serious ni critical.
+   - Offline: tras una primera visita, con red cortada, '/productos' carga desde caché y '/' muestra el Notice de error de red sin romperse.
+6. Pruebas unitarias de los hooks y utilidades nuevas (generación del .ics, validadores de nombre y celular).
+
+RESTRICCIONES
+- Usa únicamente los componentes y tokens de la fase 4; si falta alguna variante, añádela al componente (con su prueba) en lugar de usar estilos sueltos.
+- No dupliques reglas de negocio en el cliente: la disponibilidad, el plazo de cancelación y los límites los decide la API; el cliente solo muestra lo que ella devuelve.
+- No pidas ni muestres el celular del cliente en /cita/<token>.
+- Todos los textos en español de Colombia con tuteo, precios '$22.000', horas '10:30 am'.
+- Sin librerías nuevas de formularios, fechas ni modales.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+make types && make lint && make test && pnpm --filter web e2e
+Además: ejecuta la app con make dev, agenda una cita real con el seed y comprueba a mano en un viewport de 390 px que cada pantalla coincide con su referencia en design/screens/.
+
+AL TERMINAR
+Lista las pantallas con su ruta, los estados cubiertos y los resultados de las pruebas E2E; señala cualquier diferencia contra las referencias de diseño y el motivo. Rama: fase-5-flujo-cliente.

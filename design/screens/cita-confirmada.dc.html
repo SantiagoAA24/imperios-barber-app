@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cita confirmada — Imperio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;text-align:center}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible{outline:2px solid #D4AF5A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:960px;box-sizing:border-box;background:#0B0B0C;color:#F4EFE4;font-family:Inter,system-ui,sans-serif;padding:0 20px 40px;display:flex;flex-direction:column;gap:28px">
+
+<header style="display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:36px;text-align:center">
+<img src="../../design-system/assets/Logo/imperio-sello.png" alt="Logo de Barbería Imperio" style="width:96px;height:96px;border-radius:50%;box-shadow:0 0 0 1px #D4AF5A66,0 12px 40px #D4AF5A22;margin-bottom:8px">
+<div style="display:flex;align-items:center;gap:8px;color:#6FBF8E;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>
+<span>Cita confirmada</span>
+</div>
+<h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:36px;line-height:40px">Tu cita está lista</h1>
+<p style="margin:0;font-size:14px;line-height:21px;color:#A9A293">Te esperamos en Imperio. Te enviaremos un recordatorio por WhatsApp.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:14px;background:#151517;border:1px solid #D4AF5A55;border-radius:18px;padding:22px 20px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#A9A293">Fecha</span><span style="font-size:15px;font-weight:600">viernes 13 nov</span></div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0"><span style="font-size:13px;color:#A9A293">Hora</span><span style="font-family:'Cormorant Garamond',serif;font-size:44px;line-height:44px;font-weight:700;color:#D4AF5A">11:00 am</span></div>
+</div>
+<div style="height:1px;background:#2A2A2D"></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;line-height:21px"><span style="color:#A9A293">Servicio</span><span style="font-weight:600;text-align:right">Corte + barba</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;line-height:21px"><span style="color:#A9A293">Barbero</span><span style="font-weight:600;text-align:right">Cualquiera</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;line-height:21px"><span style="color:#A9A293">Duración</span><span style="font-weight:600;text-align:right">~45 min</span></div>
+<div style="border-top:1px dashed #6B665B"></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:14px;color:#A9A293">Total (se paga en el local)</span><span style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:36px;font-weight:700;color:#D4AF5A">$27.000</span></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<button type="button" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;border:0;border-radius:14px;background:#D4AF5A;color:#0B0B0C;font-size:16px;font-weight:600">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>
+Añadir al calendario</button>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+<button type="button" style="min-height:54px;border-radius:14px;background:#151517;border:1px solid #6B665B;color:#F4EFE4;font-size:15px;font-weight:600">Reagendar</button>
+<a href="cliente-cancelar.dc.html" style="display:flex;align-items:center;justify-content:center;min-height:54px;border-radius:14px;background:#151517;border:1px solid #6B665B;color:#E57A6B;font-size:15px;font-weight:600">Cancelar cita</a>
+</div>
+</section>
+
+<div style="display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:18px;color:#A9A293">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex:0 0 auto;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+<span>Llega puntual: la tolerancia máxima es de 5 minutos después de la hora pactada.</span>
+</div>
+
+<a href="catalogo.dc.html" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;box-sizing:border-box;padding:14px 16px;border:1px solid #2A2A2D;border-radius:14px;background:#151517">
+<span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Productos del local</span><span style="font-size:12.5px;line-height:18px;color:#A9A293">Mira qué puedes llevarte después de tu corte.</span></span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto"><path d="M9 5l7 7-7 7"/></svg>
+</a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md y docs/arquitectura.md, secciones 4, 5 y 6. Las fases 0, 1 y 2 están hechas (modelos con restricciones de exclusión, rutas públicas de catálogo, auth). Esta es la FASE 3, el núcleo del producto: cálculo de horarios y reservas. Un error aquí significa citas dobles o clientes que no pueden agendar, así que se trabaja con PRUEBAS PRIMERO: escribe y muestra las pruebas de compute_slots antes de implementarla, y confirma que fallan.
+
+OBJETIVO
+Que un cliente pueda consultar horarios libres y reservar sin registrarse, que sea imposible la doble reserva incluso con peticiones simultáneas, y que pueda ver, reprogramar y cancelar su cita con un enlace secreto.
+
+ENTREGABLES
+1. apps/api/app/availability/slots.py con una FUNCIÓN PURA (sin base de datos, sin reloj propio, sin I/O):
+   @dataclass(frozen=True) class Interval: start: datetime; end: datetime   # ambos con zona horaria, en UTC
+   def compute_slots(*, day: date, tz: ZoneInfo, working: Sequence[tuple[time, time]], blocked: Sequence[Interval], resource_busy: Sequence[Interval], duration_min: int, slot_min: int, now: datetime, min_lead_min: int) -> list[datetime]
+   Reglas: working son los tramos LOCALES del día (ej. 09:00-13:00 y 14:00-18:00). Los inicios candidatos se generan cada slot_min desde el inicio de cada tramo. Un inicio es válido solo si: (a) [inicio, inicio+duración) cabe completo dentro de UN tramo; (b) no se solapa con ningún intervalo de blocked ni de resource_busy (intervalos semiabiertos: terminar a las 10:45 y empezar a las 10:45 NO es solapamiento); (c) inicio >= now + min_lead_min. Devuelve inicios en UTC, con zona, ordenados y sin duplicados.
+2. apps/api/app/availability/service.py: get_availability(session, business, service, barber_id|None, day) que carga horario, ausencias (barber_time_off) y citas con status booked o attended de cada barbero candidato, agrega resource_busy si el servicio tiene resource_id (citas de CUALQUIER barbero con ese recurso) y llama a compute_slots. Candidatos: el barbero pedido o, si es None, todos los activos y visibles.
+3. GET /api/v1/public/availability?service_id=&barber_id=&date=YYYY-MM-DD -> {"date": "...", "slots": [{"starts_at": "2026-11-13T12:30:00-05:00", "barber_ids": ["..."]}]} donde barber_ids lista los barberos libres a esa hora (uno solo si se pidió barbero). Rechaza fechas pasadas o a más de 60 días con 422 (code 'date_out_of_range'). Cache-Control: no-store.
+4. POST /api/v1/public/appointments. Cuerpo: {service_id, barber_id (null = cualquiera), starts_at (ISO con offset), client: {name, phone}, consent: true, website: ""}. Validaciones: name 2-60 caracteres recortado; phone colombiano móvil (acepta '300 123 4567', '3001234567', '+57 300 123 4567' o '573001234567'; si no, 422 code 'invalid_phone' con mensaje 'Escribe un celular colombiano de 10 dígitos') normalizado a E.164 (+573001234567) en apps/api/app/core/phone.py; consent debe ser true (422 'consent_required'); website es un honeypot y si viene con texto responde 400 genérico. Flujo dentro de UNA transacción: (a) re-calcula la disponibilidad de ese barbero/día y verifica que starts_at esté en la lista; si no, 409 'slot_unavailable'; (b) busca o crea el client por (business_id, phone_e164), conservando el nombre existente y guardando consent_at; (c) si el cliente ya tiene max_active_per_phone citas booked futuras, 422 'too_many_active'; (d) si barber_id es null, ordena candidatos libres por menos citas ese día y luego por display_name, e intenta cada uno; (e) INSERT de la cita copiando price_cop, duration_min y resource_id del servicio y calculando ends_at; (f) si la base lanza IntegrityError con SQLSTATE 23P01 (violación de exclusión), revierte y prueba el siguiente candidato o responde 409. El token: secrets.token_urlsafe(16) en texto claro SOLO en la respuesta; en base se guarda su sha256. Respuesta 201: {appointment: {...}, manage_token, manage_path: "/cita/<token>"}. El 409 incluye details.alternatives con hasta 3 horarios libres más cercanos el mismo día para el mismo servicio. Límite: 10 solicitudes por hora por IP.
+5. GET /api/v1/public/appointments/{token} -> {id, status, starts_at, ends_at, service: {name, price_cop, duration_min}, barber: {display_name}, client: {first_name}, business: {name}, can_cancel, can_reschedule}. NUNCA devuelve el celular. Token desconocido: 404 'appointment_not_found'.
+6. POST /public/appointments/{token}/cancel: solo si status es booked y faltan al menos business.cancel_min_notice_min minutos; si no, 409 'too_late_to_cancel' con mensaje 'Para cancelar con menos de 1 hora de anticipación, escríbele al local.' Marca status cancelled y cancelled_at.
+7. POST /public/appointments/{token}/reschedule {starts_at}: mismas reglas de plazo; valida el nuevo horario IGNORANDO la propia cita en el cálculo y actualiza starts_at/ends_at en la misma transacción; si falla, la cita original queda intacta.
+8. Pruebas de apoyo en apps/api/tests/availability/ y tests/api/.
+
+PRUEBAS DE compute_slots (tabla parametrizada; zona America/Bogota; salvo que se indique, now es muy anterior al día, min_lead_min=30, slot_min=30)
+- A. working [(09:00,18:00)], sin bloqueos: 30 min -> 18 inicios (09:00 ... 17:30); 45 min -> 17 inicios, el último 17:00; 60 min -> 17 inicios, el último 17:00.
+- B. working [(09:00,13:00),(14:00,18:00)] y servicio de 60 min: el último inicio de la mañana es 12:00 (12:30 no aparece porque cruza el almuerzo); 14:00 sí aparece; total 14.
+- C. blocked 10:00-10:45, servicio de 30 min (tramo A): 10:00 y 10:30 no aparecen; 09:30 y 11:00 sí.
+- D. blocked 11:00-11:30, servicio de 45 min: 10:30 no aparece (terminaría 11:15); 10:00 sí (termina 10:45).
+- E. resource_busy 12:00-13:00, servicio de 60 min con recurso: 11:00 aparece (termina 12:00 exacto); 11:30, 12:00 y 12:30 no; 13:00 sí.
+- F. now = ese día 10:10 hora local, lead 30: el primer inicio es 11:00 (10:40 no está en la cuadrícula).
+- G. now = 09:30 local, lead 30: 10:00 SÍ aparece (comparación inclusiva).
+- H. ausencia 09:00-12:00: el primer inicio es 12:00.
+- I. working vacío: devuelve lista vacía.
+- J. el resultado está en UTC: 09:00 Bogotá es 14:00Z; sin duplicados; ascendente.
+- K. propiedad (hypothesis, dependencia de desarrollo ya autorizada): para bloqueos aleatorios, ningún inicio devuelto genera un intervalo que se solape con blocked o resource_busy ni que salga de un tramo.
+
+PRUEBAS DE INTEGRACIÓN (PostgreSQL real)
+- Concurrencia: 20 POST simultáneos (asyncio.gather, sesiones distintas, teléfonos distintos) al MISMO barbero y hora devuelven exactamente un 201 y diecinueve 409; en la base queda una sola cita.
+- Barbero 'cualquiera': dos solicitudes simultáneas a la misma hora tienen éxito con barberos distintos; la tercera devuelve 409.
+- Vaporizador: con un Corte + limpieza facial reservado con el barbero 1 a las 11:00, otro servicio con vaporizador a las 11:00 con el barbero 2 devuelve 409 aunque él esté libre; un Corte básico con el barbero 2 a las 11:00 SÍ se permite; y /availability deja de ofrecer 11:00 para servicios con vaporizador pero lo mantiene para los demás.
+- 409 trae alternativas (máximo 3) del mismo día.
+- Cancelar con 30 min de anticipación -> 409 'too_late_to_cancel'; con 3 horas -> 200 y el hueco vuelve a aparecer en /availability.
+- Reprogramar a un hueco ocupado falla y deja la cita original sin cambios; reprogramar a uno libre la mueve y libera el anterior.
+- too_many_active: la cuarta cita activa de un mismo celular devuelve 422.
+- El token en texto claro no existe en ninguna columna; GET por token no expone el celular.
+- Honeypot con texto devuelve 400; consent=false devuelve 422.
+- Tabla de normalización de celulares: válidos e inválidos (fijo '601 234 5678', 9 dígitos, letras).
+
+RESTRICCIONES
+- compute_slots no importa SQLAlchemy ni datetime.now(); recibe now por parámetro.
+- La disponibilidad se calcula SIEMPRE en el servidor; el cliente solo la muestra.
+- No bloquees filas con SELECT FOR UPDATE como sustituto de las restricciones de exclusión: la base es la fuente de verdad.
+- No añadas dependencias salvo pytest-cov, pytest-asyncio y hypothesis (desarrollo).
+- Todos los mensajes al usuario en español de Colombia con tuteo.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+cd apps/api && uv run pytest -q --cov=app/availability --cov-fail-under=90 && uv run mypy . && uv run ruff check .
+Repite la prueba de concurrencia 20 veces seguidas (pytest --count=20 -k concurrency o un bucle) y confirma que nunca falla.
+
+AL TERMINAR
+Muestra la tabla de pruebas de compute_slots con su resultado, la cobertura, un ejemplo de petición y respuesta de cada endpoint y las decisiones que tomaste. Rama: fase-3-reservas.

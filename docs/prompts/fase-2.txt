@@ -1,0 +1,51 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md y docs/arquitectura.md, secciones 6 (API) y 8 (seguridad). Las fases 0 y 1 están hechas: hay monorepo, modelos, migraciones y seed. Esta es la FASE 2: rutas públicas de solo lectura y autenticación del personal. Todavía NO hay disponibilidad ni reservas.
+
+OBJETIVO
+Que el frontend pueda mostrar el catálogo y que barberos y admin puedan iniciar sesión, con aislamiento estricto entre negocios y control de acceso por rol.
+
+ENTREGABLES
+1. Resolución del negocio (apps/api/app/core/tenant.py): dependencia get_business que busca el negocio por el encabezado Host contra business.domain y, si no coincide, usa DEFAULT_BUSINESS_SLUG del entorno (por defecto 'imperio'). Si no existe, 404 con el error estándar.
+2. Formato de error único para toda la API: {"code": "snake_case", "message": "texto en español para el usuario", "details": {}}. Un manejador global para HTTPException, validación de Pydantic (422) y errores no controlados (500 sin filtrar detalles internos).
+3. Rutas públicas bajo /api/v1/public, todas filtradas por el business resuelto y devolviendo solo registros active=true ordenados por sort:
+   - GET /public/business -> {name, slug, timezone, tolerance_min, slot_min}
+   - GET /public/services -> lista de {id, name, description, price_cop, duration_min, uses_resource: bool}
+   - GET /public/barbers -> solo visible_in_booking=true y active=true: {id, display_name}
+   - GET /public/products -> {id, name, description, price_cop, availability, image_url}
+   Respuestas con Cache-Control: public, max-age=60.
+4. Autenticación (apps/api/app/core/security.py y routers/auth.py):
+   - POST /auth/login {email, password} -> 200 con el usuario {id, name, role} y cookies access_token (JWT, 15 min) y refresh_token (opaco, 30 días); ambas httpOnly, Secure (configurable por entorno para desarrollo local), SameSite=Lax, Path=/api/v1.
+   - POST /auth/refresh: valida el refresh token, lo ROTA (invalida el anterior, emite uno nuevo) y entrega un access nuevo. Si se reutiliza un refresh ya rotado, revoca toda la familia de ese usuario.
+   - POST /auth/logout: revoca el refresh y borra las cookies.
+   - GET /auth/me -> usuario actual (para que la web sepa si hay sesión).
+   - Tabla nueva refresh_token (id, user_id, token_hash sha256, family_id, expires_at, revoked_at, replaced_by) con migración Alembic propia.
+   - Contraseñas con argon2-cffi; JWT con PyJWT (HS256, claims sub, role, business_id, exp). Mensaje de error de login idéntico para correo inexistente y contraseña errónea (code 'invalid_credentials', 401).
+   - Dependencias: current_user, require_role('admin') y require_role('barber'). Un admin NO hereda permisos de barbero a menos que se declare explícitamente en la ruta.
+   - Toda ruta de personal usa el business_id del token, nunca el del cliente.
+5. Defensas: límite de peticiones con slowapi (login: 5 por minuto por IP y correo; rutas públicas de lectura: 120 por minuto por IP); verificación del encabezado Origin en métodos que modifican datos (POST, PUT, PATCH, DELETE) contra ALLOWED_ORIGINS; CORS con credenciales solo para esos orígenes; cabeceras de seguridad (X-Content-Type-Options, Referrer-Policy, Strict-Transport-Security en producción).
+6. Ruta de apoyo GET /api/v1/admin/ping (solo admin) y GET /api/v1/me/ping (solo barbero) para probar permisos; se reemplazarán en fases siguientes.
+
+PRUEBAS QUE DEBEN EXISTIR (pytest + httpx.AsyncClient + PostgreSQL real)
+- Cada ruta pública devuelve solo datos del negocio resuelto: crea un segundo negocio con sus servicios y verifica que NO aparezcan.
+- Un servicio con active=false no aparece; el orden respeta sort.
+- Login correcto fija las dos cookies con httpOnly y SameSite=Lax; login erróneo devuelve 401 con el mismo mensaje en ambos casos.
+- Un barbero llamando /admin/ping recibe 403; sin sesión recibe 401; un admin llamando /me/ping recibe 403.
+- Un JWT de un usuario del negocio A usado contra el Host del negocio B no da acceso a datos de B.
+- Un access token vencido devuelve 401 con code 'token_expired'; /auth/refresh lo renueva; reutilizar un refresh ya rotado devuelve 401 y deja revocada la familia.
+- Logout invalida el refresh.
+- POST con Origin no permitido devuelve 403.
+- El sexto intento de login en un minuto devuelve 429.
+
+RESTRICCIONES
+- Sin rutas de citas ni disponibilidad.
+- Nunca registres contraseñas, tokens ni cookies en los logs.
+- Los secretos salen de variables de entorno; JWT_SECRET con mínimo 32 caracteres o la app no arranca.
+- No uses librerías de sesión o auth de terceros (fastapi-users, authlib, etc.).
+- mypy estricto y ruff deben pasar.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+cd apps/api && uv run pytest -q && uv run mypy . && uv run ruff check .
+Con uv run uvicorn app.main:app: curl a /api/v1/public/services y un login con curl -i mostrando Set-Cookie.
+
+AL TERMINAR
+Lista las rutas con su protección (tabla ruta, método, quién accede), los casos de prueba y cualquier decisión no cubierta aquí. Rama: fase-2-auth-catalogo.

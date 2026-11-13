@@ -1,0 +1,57 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md y docs/arquitectura.md, secciones 4 (modelo de datos) y 5 (disponibilidad). La fase 0 dejó el monorepo funcionando. Esta es la FASE 1: esquema de base de datos, modelos y datos de ejemplo. Sin rutas ni lógica de disponibilidad.
+
+OBJETIVO
+Un esquema PostgreSQL versionado con Alembic en el que sea IMPOSIBLE guardar dos citas solapadas del mismo barbero o del mismo recurso, y un script de datos de ejemplo de Imperio.
+
+ENTREGABLES
+1. Dependencias: sqlalchemy>=2 (estilo 2.0, Mapped[] y mapped_column), psycopg[binary] 3, alembic.
+2. apps/api/app/core/db.py: engine, sessionmaker y dependencia get_session. DATABASE_URL con el driver postgresql+psycopg.
+3. Modelos en apps/api/app/models/, un archivo por entidad, todos con id UUID (server_default gen_random_uuid()), created_at y updated_at (timestamptz, UTC):
+   - business: name, slug (único), domain (nullable, único), timezone (default 'America/Bogota'), tolerance_min (int, default 5), slot_min (int, default 30), min_lead_min (int, default 30), cancel_min_notice_min (int, default 60), max_active_per_phone (int, default 3)
+   - user: business_id, role ('admin' o 'barber', Enum), name, email (único por negocio, en minúsculas), password_hash, active
+   - barber: business_id, user_id (único), display_name, visible_in_booking (bool), active (bool)
+   - barber_schedule: barber_id, weekday (0=lunes ... 6=domingo, CHECK 0..6), start_time y end_time (time, CHECK end_time > start_time)
+   - barber_time_off: barber_id, starts_at, ends_at (CHECK ends_at > starts_at), reason (nullable)
+   - resource: business_id, name, capacity (int, default 1)
+   - service: business_id, name, description (nullable), price_cop (int, CHECK >= 0), duration_min (int, CHECK > 0 y múltiplo de 5), resource_id (nullable FK), active, sort (int)
+   - client: business_id, name, phone_e164 (nullable; índice único parcial por (business_id, phone_e164) donde no sea nulo), notes (nullable), consent_at (timestamptz nullable)
+   - appointment: business_id, barber_id, client_id, service_id, resource_id (nullable, copiado del servicio), starts_at, ends_at (CHECK ends_at > starts_at), status (Enum: booked, attended, no_show, cancelled), source (Enum: online, manual, walk_in), price_cop y duration_min (copias del servicio al reservar), manage_token_hash (text, único), reminder_sent_at (nullable), cancelled_at (nullable)
+   - product: business_id, name, description (nullable), price_cop, availability (Enum: in_stock, out_of_stock), image_url (nullable), active, sort
+4. Primera migración Alembic (autogenerada y luego revisada a mano) que ejecute CREATE EXTENSION IF NOT EXISTS btree_gist y añada en appointment dos restricciones de exclusión:
+   ALTER TABLE appointment ADD CONSTRAINT appointment_no_barber_overlap EXCLUDE USING gist (barber_id WITH =, tstzrange(starts_at, ends_at, '[)') WITH &&) WHERE (status IN ('booked','attended'));
+   ALTER TABLE appointment ADD CONSTRAINT appointment_no_resource_overlap EXCLUDE USING gist (resource_id WITH =, tstzrange(starts_at, ends_at, '[)') WITH &&) WHERE (resource_id IS NOT NULL AND status IN ('booked','attended'));
+   Nota: el rango es semiabierto, así que una cita que termina a las 10:45 y otra que empieza a las 10:45 NO se solapan.
+5. Índices: appointment (business_id, starts_at), appointment (barber_id, starts_at), client (business_id, name), service y product por (business_id, active, sort).
+6. Script apps/api/app/seed.py (ejecutable con: uv run python -m app.seed), idempotente, que cree:
+   - Negocio: name 'Imperio Barber', slug 'imperio', timezone 'America/Bogota'.
+   - Recurso: 'Vaporizador' (capacity 1).
+   - Servicios (nombre, precio COP, minutos): Corte básico 22000/30; Corte + barba 27000/45; Corte + barba + cejas 30000/45; Corte + cejas 25000/30; Corte + limpieza facial 50000/60 (usa el vaporizador); Limpieza facial 35000/30 (usa el vaporizador).
+   - Un admin (admin@imperio.test) y dos barberos (barbero1@imperio.test, barbero2@imperio.test) con contraseña 'cambiar-esto' hasheada con argon2 (argon2-cffi); nombres 'Barbero 1' y 'Barbero 2'.
+   - Horario de ambos barberos de lunes a sábado en dos tramos: 09:00-13:00 y 14:00-18:00; domingo 10:00-14:00. [valores de ejemplo]
+   - 8 productos de ejemplo con precio y disponibilidad variada (dos en out_of_stock).
+7. apps/api/tests/test_schema.py con pytest y PostgreSQL real (nunca SQLite ni mocks), usando una base de datos de pruebas creada y migrada por una fixture de sesión.
+
+PRUEBAS QUE DEBEN EXISTIR
+- Insertar dos citas del mismo barbero con intervalos solapados (10:00-10:45 y 10:30-11:00) falla con IntegrityError (SQLSTATE 23P01).
+- Dos citas del mismo barbero contiguas (10:00-10:45 y 10:45-11:15) se guardan bien.
+- Dos citas de DISTINTOS barberos a la misma hora se guardan bien si no usan recurso.
+- Dos citas de distintos barberos a la misma hora con resource_id del vaporizador fallan.
+- Una cita con status 'cancelled' no bloquea: se puede crear otra en su hueco.
+- Dos clientes con el mismo teléfono en el mismo negocio fallan; en negocios distintos se permiten; varios clientes sin teléfono se permiten.
+- Los CHECK rechazan precio negativo, duración 0 y ends_at anterior a starts_at.
+- alembic upgrade head -> downgrade base -> upgrade head funciona sin errores.
+
+RESTRICCIONES
+- Ninguna ruta HTTP nueva. Ninguna lógica fuera de modelos, migración, seed y pruebas.
+- No uses create_all(); el esquema se crea solo con Alembic.
+- Precios en enteros (pesos), jamás float ni Decimal.
+- Todas las fechas con zona horaria (DateTime(timezone=True)).
+- mypy estricto debe pasar.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+make db-up && cd apps/api && uv run alembic upgrade head && uv run python -m app.seed && uv run pytest -q && uv run mypy . && uv run ruff check .
+Vuelve a correr el seed: no debe duplicar datos.
+
+AL TERMINAR
+Muestra el diagrama de tablas en texto, la lista de pruebas y su resultado, y las decisiones que tomaste donde este prompt no era explícito. Rama: fase-1-modelos.

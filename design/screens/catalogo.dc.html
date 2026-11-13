@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Productos del local — Imperio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;text-align:center}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible{outline:2px solid #D4AF5A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:1380px;box-sizing:border-box;background:#0B0B0C;color:#F4EFE4;font-family:Inter,system-ui,sans-serif;padding:0 20px 40px;display:flex;flex-direction:column;gap:28px">
+
+<header style="display:flex;flex-direction:column;gap:20px;padding-top:20px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<a href="cita-confirmada.dc.html" aria-label="Volver a mi cita" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-10px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+</a>
+<img src="../../design-system/assets/Logo/imperio-sello.png" alt="Logo de Barbería Imperio" style="width:44px;height:44px;border-radius:50%">
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:36px;line-height:40px">Productos del local</h1>
+<p style="margin:0;font-size:14px;line-height:21px;color:#A9A293">Disponibles para llevar en la barbería. El pago se hace en el local.</p>
+</div>
+</header>
+
+<div style="display:flex;gap:8px;overflow-x:auto;margin-right:-20px;padding-right:20px;padding-bottom:4px">
+<button type="button" aria-pressed="true" style="flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;background:#1B170D;border:1px solid #D4AF5A;color:#F4EFE4;font-size:14px;font-weight:500">Todos</button>
+<button type="button" aria-pressed="false" style="flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;font-size:14px;font-weight:500">Cabello</button>
+<button type="button" aria-pressed="false" style="flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;font-size:14px;font-weight:500">Barba</button>
+<button type="button" aria-pressed="false" style="flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;font-size:14px;font-weight:500">Cuidado facial</button>
+</div>
+
+<section aria-label="Productos" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+<sc-for list="{{products}}" as="p" hint-placeholder-count="6">
+<article style="display:flex;flex-direction:column;background:#151517;border:1px solid #2A2A2D;border-radius:14px;overflow:hidden">
+<div style="height:150px;background:#26231B;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v3H9zM8 6h8l1 4v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9z"/><path d="M7 13h10"/></svg>
+<span style="font-size:12.5px;line-height:18px;color:#A9A293">Foto del producto</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:12px">
+<span style="font-size:15px;line-height:20px;font-weight:600;min-height:40px">{{ p.name }}</span>
+<span style="font-family:'Cormorant Garamond',serif;font-size:23px;line-height:28px;font-weight:700;color:#D4AF5A">[Precio]</span>
+<sc-if value="{{ p.ok }}" hint-placeholder-val="{{ true }}">
+<span style="display:flex;align-items:center;gap:6px;font-size:12.5px;line-height:18px;color:#6FBF8E">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>
+Disponible</span>
+</sc-if>
+<sc-if value="{{ p.out }}" hint-placeholder-val="{{ false }}">
+<span style="display:flex;align-items:center;gap:6px;font-size:12.5px;line-height:18px;color:#A9A293">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+Agotado por ahora</span>
+</sc-if>
+</div>
+</article>
+</sc-for>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px;background:#151517;border:1px solid #D4AF5A55;border-radius:18px;padding:20px">
+<div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:21px;color:#A9A293">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto;margin-top:1px"><path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M10 20v-6h4v6"/></svg>
+<span>Los productos se compran directamente en la barbería. La app no procesa pagos.</span>
+</div>
+<button type="button" style="min-height:54px;border:0;border-radius:14px;background:#D4AF5A;color:#0B0B0C;font-size:16px;font-weight:600">Agendar cita</button>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = [
+      { name: 'Pomada de fijación', ok: true },
+      { name: 'Cera mate', ok: true },
+      { name: 'Aceite para barba', ok: true },
+      { name: 'Bálsamo para barba', ok: false },
+      { name: 'Shampoo para cabello', ok: true },
+      { name: 'Crema hidratante facial', ok: true }
+    ];
+    return {
+      products: P.map((p) => ({ name: p.name, ok: p.ok, out: !p.ok }))
+    };
+  }
+}
+</script>
+</body>
+</html>

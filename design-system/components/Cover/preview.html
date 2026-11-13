@@ -1,0 +1,47 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:var(--bg)}
+.cv{position:relative;width:960px;height:320px;overflow:hidden;background:var(--bg)}
+.cv svg{position:absolute;inset:0}
+.cv .blk{rx:var(--radius-md)}
+.gold{fill:var(--gold)}
+.muted{fill:var(--surface-muted)}
+.tan{fill:var(--text-muted)}
+.cream{fill:var(--text)}
+.ring-g{fill:none;stroke:var(--gold);stroke-width:2}
+.ring-b{fill:none;stroke:var(--bg);stroke-width:2}
+.cv .txt{position:absolute;left:40px;bottom:32px;max-width:440px}
+.cv h1{margin:0;font:600 100px/.95 var(--font-display);color:var(--text)}
+.cv p{margin:12px 0 0;font:400 13.5px/1.5 var(--font-sans);color:var(--text-muted)}
+</style>
+</head>
+<body>
+<div class="cv">
+<!-- Derivación
+bloques: gold 200×260 (10u×13u, u=space-5), surface-muted 200×200, text-muted 100×100 y text 60×100, rx=radius-md; el dorado y lo oscuro llevan la identidad negro y dorado.
+disposición: losa dorada alta que sangra arriba, bloque oscuro a su derecha y dos fichas que sangran por abajo, todo a la derecha de x=480.
+patrón: anillos concéntricos (radio de 24 a 84, paso 20): es el doble anillo dorado del sello circular del letrero; dorado sobre el bloque oscuro y recortado en el fondo sobre la losa dorada.
+pasos y radios: space-5 (20px) como paso de módulo, radius-md (14px) en esquinas, trazo de 2px.
+-->
+<svg width="960" height="320" viewBox="0 0 960 320" aria-hidden="true">
+<rect class="blk gold" x="500" y="-20" width="200" height="260"/>
+<rect class="blk muted" x="720" y="40" width="200" height="200"/>
+<rect class="blk tan" x="500" y="260" width="100" height="100"/>
+<rect class="blk cream" x="620" y="260" width="60" height="100"/>
+<circle class="ring-g" cx="820" cy="140" r="24"/>
+<circle class="ring-g" cx="820" cy="140" r="44"/>
+<circle class="ring-g" cx="820" cy="140" r="64"/>
+<circle class="ring-g" cx="820" cy="140" r="84"/>
+<circle class="ring-b" cx="600" cy="110" r="26"/>
+<circle class="ring-b" cx="600" cy="110" r="46"/>
+</svg>
+<div class="txt"><h1>Imperio<br>Barber</h1><p>Agenda tu cita, sin registro y sin descargas.</p></div>
+</div>
+</body>
+</html>

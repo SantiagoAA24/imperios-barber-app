@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cancelar cita — Imperio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;text-align:center}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible{outline:2px solid #D4AF5A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:900px;box-sizing:border-box;background:#0B0B0C;color:#F4EFE4;font-family:Inter,system-ui,sans-serif;padding:20px 20px 40px;display:flex;flex-direction:column;gap:28px">
+
+<header style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<a href="cita-confirmada.dc.html" aria-label="Volver a mi cita" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-10px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+<img src="../../design-system/assets/Logo/imperio-sello.png" alt="Logo de Barbería Imperio" style="width:44px;height:44px;border-radius:50%">
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:36px;line-height:40px">¿Cancelar tu cita?</h1>
+<p style="margin:0;font-size:14px;line-height:21px;color:#A9A293">Si cancelas, ese horario queda libre para otros clientes.</p>
+</div>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:10px;background:#151517;border:1px solid #D4AF5A55;border-radius:18px;padding:20px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:15px;line-height:22px;font-weight:600">viernes 13 nov</span><span style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:34px;font-weight:700;color:#D4AF5A">11:00 am</span></div>
+<div style="height:1px;background:#2A2A2D"></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;line-height:21px"><span style="color:#A9A293">Servicio</span><span style="font-weight:600;text-align:right">Corte + barba</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px;line-height:21px"><span style="color:#A9A293">Barbero</span><span style="font-weight:600;text-align:right">Cualquiera</span></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;line-height:32px">¿Qué pasó? <span style="font-family:Inter,sans-serif;font-size:13px;font-weight:400;color:#A9A293">(opcional)</span></h2>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<button type="button" aria-pressed="true" style="min-height:44px;padding:0 16px;border-radius:999px;background:#1B170D;border:1px solid #D4AF5A;color:#F4EFE4;font-size:14px;font-weight:500">Me surgió un imprevisto</button>
+<button type="button" aria-pressed="false" style="min-height:44px;padding:0 16px;border-radius:999px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;font-size:14px;font-weight:500">Cambié de planes</button>
+<button type="button" aria-pressed="false" style="min-height:44px;padding:0 16px;border-radius:999px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;font-size:14px;font-weight:500">Otro motivo</button>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px;margin-top:auto">
+<button type="button" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;border:0;border-radius:14px;background:#E57A6B;color:#0B0B0C;font-size:16px;font-weight:600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>Sí, cancelar cita</button>
+<a href="cita-confirmada.dc.html" style="display:flex;align-items:center;justify-content:center;min-height:54px;border-radius:14px;background:#151517;border:1px solid #6B665B;color:#F4EFE4;font-size:16px;font-weight:600">Mantener mi cita</a>
+<button type="button" style="min-height:44px;border:0;background:transparent;color:#D4AF5A;font-size:15px;font-weight:600">Prefiero reagendar</button>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

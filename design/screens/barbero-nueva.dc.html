@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nueva cita — Imperio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;text-align:center}
+button:disabled{cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid #D4AF5A;outline-offset:2px}
+input::placeholder{color:#A9A293}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:1400px;box-sizing:border-box;background:#0B0B0C;color:#F4EFE4;font-family:Inter,system-ui,sans-serif;padding:20px 20px 0;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;align-items:center;gap:12px">
+<img src="../../design-system/assets/Logo/imperio-sello.png" alt="Logo de Barbería Imperio" style="width:44px;height:44px;border-radius:50%">
+<div style="display:flex;flex-direction:column;flex:1;min-width:0">
+<span style="font-size:13px;line-height:18px;color:#A9A293">Para un cliente que llega o llama</span>
+<h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:30px;line-height:34px">Nueva cita</h1>
+</div>
+</header>
+
+<section style="display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;padding:14px 8px 14px 16px;border-radius:14px;background:#151517;border:1px solid #2A2A2D">
+<span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;line-height:22px;font-weight:600">Turno sin cita</span><span style="font-size:12.5px;line-height:18px;color:#A9A293">El cliente ya está aquí: se agenda en el primer hueco libre.</span></span>
+<button type="button" role="switch" aria-checked="false" aria-label="Turno sin cita" style="flex:0 0 48px;height:44px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;padding:0"><span style="display:flex;align-items:center;justify-content:flex-start;width:44px;height:26px;box-sizing:border-box;padding:3px;border-radius:999px;background:#26231B;border:1px solid #6B665B"><span style="width:20px;height:20px;border-radius:50%;background:#A9A293"></span></span></button>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">1</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;line-height:32px;font-weight:600">Servicio</h2></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+<sc-for list="{{services}}" as="s" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{ s.on }}" style="min-height:96px;box-sizing:border-box;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;text-align:left;{{ s.sel }}">
+<span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;line-height:19px;font-weight:600">{{ s.name }}</span><span style="font-size:12.5px;line-height:18px;color:#A9A293">{{ s.meta }}</span></span>
+<span style="font-family:'Cormorant Garamond',serif;font-size:22px;line-height:26px;font-weight:700;color:#D4AF5A">{{ s.price }}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">2</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;line-height:32px;font-weight:600">Día y hora</h2></div>
+<div style="display:flex;gap:8px;overflow-x:auto;margin-right:-20px;padding-right:20px;padding-bottom:4px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="5">
+<button type="button" aria-pressed="{{ d.on }}" style="flex:0 0 auto;height:48px;padding:0 18px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;white-space:nowrap;{{ d.sel }}"><span style="font-weight:500;opacity:.8">{{ d.wd }}</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px">{{ d.n }}</span></button>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+<sc-for list="{{slots}}" as="t" hint-placeholder-count="8">
+<button type="button" aria-pressed="{{ t.on }}" style="height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:500;{{ t.sel }}">{{ t.label }}</button>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">3</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;line-height:32px;font-weight:600">Cliente</h2></div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="nc-nombre" style="font-size:13px;line-height:18px;font-weight:500;color:#A9A293">Nombre</label>
+<input id="nc-nombre" type="text" placeholder="¿Cómo se llama?" style="height:52px;box-sizing:border-box;border-radius:12px;background:#151517;border:1px solid #6B665B;color:#F4EFE4;padding:0 16px;font:inherit;font-size:16px">
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="nc-cel" style="font-size:13px;line-height:18px;font-weight:500;color:#A9A293">Celular (WhatsApp, opcional)</label>
+<div style="display:flex;align-items:center;gap:10px;height:52px;box-sizing:border-box;border-radius:12px;background:#151517;border:1px solid #6B665B;padding:0 16px"><span style="font-size:15px;font-weight:600;color:#D4AF5A">+57</span><input id="nc-cel" type="tel" inputmode="numeric" placeholder="300 000 0000" style="flex:1;min-width:0;height:100%;background:transparent;border:0;color:#F4EFE4;font:inherit;font-size:16px;padding:0"></div>
+<span style="font-size:12.5px;line-height:18px;color:#A9A293">Con celular, el cliente recibe el recordatorio por WhatsApp.</span>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px;box-sizing:border-box;padding:18px 20px;border-radius:18px;background:#151517;border:1px solid #D4AF5A55">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:14px;line-height:21px;color:#A9A293">{{ summary }}</span><span style="font-family:'Cormorant Garamond',serif;font-size:28px;line-height:32px;font-weight:700;color:#D4AF5A">{{ total }}</span></div>
+<button type="button" style="min-height:54px;border:0;border-radius:14px;background:#D4AF5A;color:#0B0B0C;font-size:16px;font-weight:600">Guardar cita</button>
+</section>
+
+<nav aria-label="Navegación del barbero" style="position:absolute;left:0;right:0;bottom:0;height:76px;box-sizing:border-box;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#151517;border-top:1px solid #2A2A2D">
+<button type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:#A9A293;font-size:12px;font-weight:500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Agenda</button>
+<button type="button" aria-current="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:#D4AF5A;font-size:12px;font-weight:600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nueva cita</button>
+<button type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:#A9A293;font-size:12px;font-weight:500"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Mi horario</button>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = 'background:#1B170D;border:1px solid #D4AF5A;color:#F4EFE4;';
+    const off = 'background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;';
+    const gold = 'background:#D4AF5A;border:1px solid #D4AF5A;color:#0B0B0C;';
+    const S = [
+      ['Corte básico', '30 min', '$22.000'], ['Corte + barba', '45 min', '$27.000'], ['Corte + barba + cejas', '45 min', '$30.000'],
+      ['Corte + cejas', '30 min', '$25.000'], ['Corte + limpieza facial', '60 min · con vaporizador', '$50.000'], ['Limpieza facial', '30 min', '$35.000']
+    ];
+    const D = [['Vie', 13], ['Sáb', 14], ['Dom', 15], ['Lun', 16], ['Mar', 17]];
+    const T = ['12:30 pm', '2:00 pm', '3:00 pm', '3:30 pm', '4:00 pm', '4:30 pm', '5:00 pm', '5:30 pm'];
+    return {
+      services: S.map((s, i) => ({ name: s[0], meta: s[1], price: s[2], on: i === 1, sel: i === 1 ? on : off })),
+      days: D.map((d, i) => ({ wd: d[0], n: d[1], on: i === 0, sel: i === 0 ? gold : off })),
+      slots: T.map((t, i) => ({ label: t, on: i === 0, sel: i === 0 ? gold : off })),
+      summary: 'Corte + barba · viernes 13 nov · 12:30 pm',
+      total: '$27.000'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Formularios" height=250 subtitle="Campos de nombre y celular, sin registro" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;padding:20px;background:var(--bg);color:var(--text);font-family:var(--font-sans)}</style>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;gap:14px;max-width:350px">
+<div class="imp-field"><label for="n1">Nombre</label><div class="imp-field__box"><input id="n1" type="text" autocomplete="name" placeholder="¿Cómo te llamas?"></div></div>
+<div class="imp-field"><label for="c1">Celular (WhatsApp)</label><div class="imp-field__box"><span class="imp-field__prefix">+57</span><input id="c1" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="300 000 0000"></div></div>
+</div>
+</body>
+</html>

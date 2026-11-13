@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Agendar cita — A · Imperio Dorado</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;text-align:inherit;-webkit-tap-highlight-color:transparent}
+button:disabled{cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid #D4AF5A;outline-offset:2px}
+input::placeholder{color:#8A8475}
+</style>
+</helmet>
+<div style="width:390px;height:2080px;box-sizing:border-box;background:#0B0B0C;color:#F4EFE4;font-family:Inter,system-ui,sans-serif;padding:0 20px 40px;display:flex;flex-direction:column;gap:36px">
+
+<header style="display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:36px;text-align:center">
+<img src="../../design-system/assets/Logo/imperio-sello.png" alt="Logo de Barbería Imperio" style="width:132px;height:132px;border-radius:50%;box-shadow:0 0 0 1px #D4AF5A66,0 12px 40px #D4AF5A22">
+<h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:36px;line-height:1.1">Agenda tu cita</h1>
+<p style="margin:0;font-size:14px;line-height:1.5;color:#A9A293;max-width:290px">Sin registro y sin descargas. Elige tu servicio, tu hora y listo.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">1</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Servicio</h2></div>
+<sc-for list="{{services}}" as="s" hint-placeholder-count="6">
+<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;min-height:64px;border-radius:14px;{{ s.sel }}">
+<span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:15px;font-weight:600">{{ s.name }}</span><span style="font-size:12.5px;color:#A9A293">{{ s.meta }}</span></span>
+<span style="font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:700;color:#D4AF5A;white-space:nowrap">{{ s.priceLabel }}</span>
+</button>
+</sc-for>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">2</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Barbero</h2></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<sc-for list="{{barbers}}" as="b" hint-placeholder-count="3">
+<button type="button" onClick="{{ b.pick }}" aria-pressed="{{ b.on }}" style="display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;min-height:48px;border-radius:999px;{{ b.sel }}">
+<span style="width:32px;height:32px;border-radius:50%;background:#26231B;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ b.ini }}</span>
+<span style="font-size:14px;font-weight:500">{{ b.name }}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">3</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Día y hora</h2></div>
+<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-right:-20px;padding-right:20px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<button type="button" onClick="{{ d.pick }}" aria-pressed="{{ d.on }}" style="flex:0 0 62px;height:78px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;{{ d.sel }}">
+<span style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;{{ d.sub }}">{{ d.wd }}</span>
+<span style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;line-height:1">{{ d.n }}</span>
+</button>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px">
+<sc-for list="{{slots}}" as="t" hint-placeholder-count="16">
+<button type="button" onClick="{{ t.pick }}" disabled="{{ t.off }}" aria-pressed="{{ t.on }}" style="height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:500;{{ t.sel }}">{{ t.label }}</button>
+</sc-for>
+</div>
+<p style="margin:0;font-size:12.5px;line-height:1.5;color:#A9A293">{{ durationNote }}</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid #D4AF5A;color:#D4AF5A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">4</span><h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Tus datos</h2></div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="nombre" style="font-size:13px;color:#A9A293">Nombre</label>
+<input id="nombre" type="text" autocomplete="name" placeholder="¿Cómo te llamas?" style="height:52px;box-sizing:border-box;border-radius:12px;background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;padding:0 16px;font:inherit;font-size:16px">
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="celular" style="font-size:13px;color:#A9A293">Celular (WhatsApp)</label>
+<div style="display:flex;align-items:center;height:52px;box-sizing:border-box;border-radius:12px;background:#151517;border:1px solid #2A2A2D;padding:0 16px;gap:10px">
+<span style="font-size:15px;color:#D4AF5A;font-weight:600">+57</span>
+<input id="celular" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="300 000 0000" style="flex:1;min-width:0;height:100%;background:transparent;border:0;color:#F4EFE4;font:inherit;font-size:16px;padding:0">
+</div>
+</div>
+</section>
+
+<section style="background:#151517;border:1px solid #D4AF5A55;border-radius:18px;padding:22px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Resumen</h2>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#A9A293">Servicio</span><span style="font-weight:600;text-align:right">{{ curName }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#A9A293">Barbero</span><span style="font-weight:600;text-align:right">{{ barberLabel }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#A9A293">Fecha y hora</span><span style="font-weight:600;text-align:right">{{ whenLabel }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span style="color:#A9A293">Duración</span><span style="font-weight:600;text-align:right">{{ durLabel }}</span></div>
+<div style="height:1px;background:#2A2A2D"></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:14px;color:#A9A293">Total (se paga en el local)</span><span style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#D4AF5A">{{ totalLabel }}</span></div>
+<button type="button" onClick="{{ confirm }}" style="height:54px;border-radius:14px;border:0;font-size:16px;font-weight:600;text-align:center;{{ ctaStyle }}">{{ ctaLabel }}</button>
+<sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:14px;line-height:1.5;color:#D4AF5A;text-align:center">¡Listo! Te esperamos en Imperio. Te llegará un recordatorio por WhatsApp.</p>
+</sc-if>
+<div style="display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.5;color:#A9A293">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF5A" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex:0 0 auto;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+<span>Llega puntual: la tolerancia máxima es de 5 minutos después de la hora pactada.</span>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2080}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { svc: 'cb', barber: 'any', day: 0, slot: -1, done: false };
+  }
+  renderVals() {
+    const st = this.state;
+    const SV = [
+      { id: 'cb', name: 'Corte básico', price: 22000, min: 30, note: '' },
+      { id: 'cbb', name: 'Corte + barba', price: 27000, min: 45, note: '' },
+      { id: 'cbc', name: 'Corte + barba + cejas', price: 30000, min: 45, note: '' },
+      { id: 'cc', name: 'Corte + cejas', price: 25000, min: 30, note: '' },
+      { id: 'clf', name: 'Corte + limpieza facial', price: 50000, min: 60, note: ' · con vaporizador' },
+      { id: 'lf', name: 'Limpieza facial', price: 35000, min: 30, note: '' }
+    ];
+    const money = (n) => '$' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const cur = SV.find((s) => s.id === st.svc);
+    const need = Math.ceil(cur.min / 30);
+    const DAYS = [['Vie', 13], ['Sáb', 14], ['Dom', 15], ['Lun', 16], ['Mar', 17], ['Mié', 18], ['Jue', 19]];
+    const N = 16;
+    const busy = (i) => ((i * 5 + st.day * 3) % 7) < 2;
+    const avail = (i) => { if (i + need > N) return false; for (let k = 0; k < need; k++) if (busy(i + k)) return false; return true; };
+    const lab = (i) => { const m = 600 + i * 30; const h = Math.floor(m / 60); const mm = m % 60; return (h > 12 ? h - 12 : h) + ':' + (mm ? '30' : '00') + ' ' + (h >= 12 ? 'pm' : 'am'); };
+    const sel = (on) => on ? 'background:#1B170D;border:1px solid #D4AF5A;color:#F4EFE4;' : 'background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;';
+    const selSlot = st.slot >= 0 && avail(st.slot) ? st.slot : -1;
+    const BA = [{ id: 'any', name: 'Cualquiera', ini: '★' }, { id: 'b1', name: 'Barbero 1', ini: 'B1' }, { id: 'b2', name: 'Barbero 2', ini: 'B2' }];
+    const curB = BA.find((b) => b.id === st.barber);
+    const slots = [];
+    for (let i = 0; i < N; i++) {
+      const ok = avail(i); const on = i === selSlot;
+      slots.push({
+        label: lab(i), off: !ok, on,
+        sel: on ? 'background:#D4AF5A;border:1px solid #D4AF5A;color:#0B0B0C;font-weight:600;' : ok ? 'background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;' : 'background:transparent;border:1px solid #1E1E20;color:#6F6A5E;text-decoration:line-through;',
+        pick: () => this.setState({ slot: i, done: false })
+      });
+    }
+    const dayName = ['viernes', 'sábado', 'domingo', 'lunes', 'martes', 'miércoles', 'jueves'][st.day];
+    return {
+      services: SV.map((s) => ({ name: s.name, priceLabel: money(s.price), meta: s.min + ' min' + s.note, on: s.id === st.svc, sel: sel(s.id === st.svc), pick: () => this.setState({ svc: s.id, done: false }) })),
+      barbers: BA.map((b) => ({ name: b.name, ini: b.ini, on: b.id === st.barber, sel: sel(b.id === st.barber), pick: () => this.setState({ barber: b.id, done: false }) })),
+      days: DAYS.map((d, i) => ({ wd: d[0], n: d[1], on: i === st.day, sub: i === st.day ? 'color:#0B0B0C' : 'color:#A9A293', sel: i === st.day ? 'background:#D4AF5A;border:1px solid #D4AF5A;color:#0B0B0C;' : 'background:#151517;border:1px solid #2A2A2D;color:#F4EFE4;', pick: () => this.setState({ day: i, done: false }) })),
+      slots,
+      durationNote: 'Tu servicio dura aprox. ' + cur.min + ' min; reservamos el bloque completo. Los horarios tachados ya están ocupados.',
+      curName: cur.name,
+      barberLabel: curB.name,
+      whenLabel: selSlot >= 0 ? dayName + ' ' + DAYS[st.day][1] + ' nov · ' + lab(selSlot) : 'Elige una hora',
+      durLabel: '~' + cur.min + ' min',
+      totalLabel: money(cur.price),
+      done: st.done,
+      ctaLabel: selSlot >= 0 ? 'Confirmar cita' : 'Elige una hora para continuar',
+      ctaStyle: selSlot >= 0 ? 'background:#D4AF5A;color:#0B0B0C;' : 'background:#26231B;color:#A9A293;',
+      confirm: () => { if (selSlot >= 0) this.setState({ done: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

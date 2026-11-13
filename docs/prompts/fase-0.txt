@@ -1,0 +1,34 @@
+CONTEXTO
+Construyo "Imperio Barber", una PWA de agendamiento de citas para una barbería en Bogotá (Colombia). Lee primero docs/arquitectura.md completo (secciones 1 a 9) y design-system/README.md. Esta es la FASE 0: solo esqueleto y herramientas, sin lógica de negocio.
+
+OBJETIVO
+Un monorepo que arranca con un comando, con CI en verde y un CLAUDE.md que guíe las fases siguientes.
+
+ENTREGABLES
+1. Estructura:
+   apps/web            Vite + React 18 + TypeScript estricto
+   apps/api            FastAPI, Python 3.12, gestionado con uv
+   packages/tokens     solo package.json y README por ahora
+   docs/               arquitectura.md (copia) y decisiones.md (encabezado vacío)
+   .github/workflows/ci.yml
+   docker-compose.yml, Makefile, .editorconfig, .gitignore, .env.example, README.md, CLAUDE.md
+   (design-system/ ya existe: no lo modifiques)
+2. apps/web: pnpm; React Router con una sola ruta "/" que muestra "Imperio Barber"; Vitest + Testing Library con una prueba de humo; ESLint (typescript-eslint, react-hooks) y Prettier. tsconfig con strict y noUncheckedIndexedAccess.
+3. apps/api: FastAPI con GET /health que responde {"status":"ok"}; paquete app/ con subpaquetes routers, services, availability, models, schemas y core (cada uno con __init__.py); configuración con pydantic-settings que lee DATABASE_URL, JWT_SECRET y ALLOWED_ORIGINS desde .env; pytest con una prueba de /health; ruff (lint y format) y mypy en modo estricto.
+4. docker-compose.yml: solo PostgreSQL 16 con volumen nombrado, puerto 5432 y healthcheck. La API y la web corren en el host.
+5. Makefile con los objetivos: db-up, db-down, dev (db + API con --reload en :8000 + web en :5173 con proxy de /api hacia :8000), test, lint y types (por ahora imprime "disponible desde la fase 4").
+6. CI en GitHub Actions con dos jobs. api: uv sync, ruff check, ruff format --check, mypy, pytest. web: pnpm install --frozen-lockfile, eslint, tsc --noEmit, vitest run, build. Con caché de dependencias.
+7. CLAUDE.md en la raíz (máximo 80 líneas) con: descripción; comandos; reglas de negocio (slots de 30 min, tolerancia de 5 min, precios en pesos enteros, fechas en UTC, zona America/Bogota, business_id en toda consulta); convenciones (español de Colombia con tuteo, estilos solo con variables de tokens, botones y enlaces reales, áreas táctiles de 44 px, estado nunca solo por color); flujo (rama por fase, PR pequeño, no instalar dependencias sin pedirlo, pruebas antes del código en availability).
+
+RESTRICCIONES
+- No crees modelos, rutas de negocio ni pantallas.
+- No uses Next.js, Redux ni librerías de UI externas.
+- Fija versiones con pnpm-lock.yaml y uv.lock.
+- Pregunta antes de añadir cualquier dependencia que no esté nombrada arriba.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+make db-up && make lint && make test && pnpm --filter web build
+make dev debe servir http://localhost:5173 y http://localhost:8000/health.
+
+AL TERMINAR
+Lista los archivos creados, las versiones instaladas y cualquier decisión que se aparte de lo pedido. Haz commits pequeños en español en la rama fase-0-esqueleto.

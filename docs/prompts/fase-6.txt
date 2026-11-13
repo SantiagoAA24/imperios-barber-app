@@ -1,0 +1,34 @@
+CONTEXTO
+Proyecto Imperio Barber. Lee CLAUDE.md y docs/arquitectura.md (secciones 4, 5, 6 y 7). Las fases 0 a 5 están hechas. Referencias de diseño en design/screens/: barbero.dc.html (agenda del día), barbero-nueva.dc.html (nueva cita manual) y barbero-horario.dc.html (mi horario). Léelas para estructura, textos y estados; no las importes. Esta es la FASE 6: backend y pantallas del barbero. Se usa en el celular, de pie, con una mano: prioriza áreas grandes y pocas pulsaciones.
+
+OBJETIVO
+Que cada barbero inicie sesión, vea su día, marque citas como atendidas o no asistió, registre clientes que llegan sin cita o por llamada, y administre su horario y ausencias, con la web pública reflejando los cambios de inmediato.
+
+ENTREGABLES BACKEND (apps/api, rutas bajo /api/v1/me, todas con require_role('barber') y filtradas por el barbero del token; un barbero JAMÁS ve ni modifica citas de otro)
+1. GET /me/appointments?date=YYYY-MM-DD -> citas del día (excluye cancelled por defecto; ?include_cancelled=true las incluye), ordenadas por starts_at: {id, status, source, starts_at, ends_at, service: {name, duration_min, price_cop, uses_resource}, client: {id, name, phone_masked, phone_e164 solo si el barbero lo necesita para WhatsApp}, is_overdue: bool}. is_overdue = status booked y now > starts_at + tolerance_min (el servidor decide, no el cliente). Incluye un resumen {total, attended, pending, no_show, revenue_cop (suma de attended)}.
+2. PATCH /me/appointments/{id} {status: 'attended'|'no_show'|'cancelled'}: transiciones permitidas solo desde booked (y de no_show a attended por si el cliente llegó tarde); cualquier otra devuelve 409 'invalid_transition'. 'no_show' solo después de starts_at + tolerance_min, si no 409 'too_early_for_no_show' con mensaje 'Todavía estás dentro de los 5 minutos de espera.' (usa el valor del negocio). 'attended' solo desde starts_at - 15 min. Al marcar cancelled liberando el hueco.
+3. GET /me/next-free?service_id= -> primer instante en que el barbero puede EMPEZAR el servicio ya (no atado a la cuadrícula de 30 min): el máximo entre now redondeado a 5 minutos y el fin de la cita en curso, validando horario laboral, ausencias, otras citas y el recurso compartido. Reutiliza compute_slots o una variante pura con pruebas propias.
+4. POST /me/appointments {service_id, starts_at | 'walk_in': true, client: {name, phone opcional}, source: 'manual'|'walk_in'}: para walk_in usa next-free; con celular crea o reutiliza el cliente por teléfono; sin celular crea un cliente sin teléfono (permitido). Mismas protecciones de doble reserva (409 con alternativas). No exige consentimiento digital: el barbero lo recoge en persona (guarda consent_at nulo y un campo de nota).
+5. GET y PUT /me/schedule: lista de {weekday, start_time, end_time}; el PUT reemplaza todo el horario en una transacción. Valida: end > start, múltiplos de 30 min, sin tramos solapados el mismo día. Cambiar el horario NO cancela citas ya reservadas fuera del nuevo horario: la respuesta incluye conflicts[] con esas citas para que la pantalla las muestre.
+6. GET, POST y DELETE /me/time-off {starts_at, ends_at, reason}: al crear, devuelve las citas que quedan dentro de la ausencia en conflicts[] sin cancelarlas.
+7. Pruebas pytest con PostgreSQL real: aislamiento entre barberos y negocios, cada transición de estado válida e inválida, 'no_show' antes y después de la tolerancia (reloj inyectado), next-free con cita en curso y con almuerzo, walk-in simultáneo de dos barberos con el vaporizador, validaciones del horario, conflictos al cambiar horario.
+
+ENTREGABLES FRONTEND (apps/web/src/features/barber/)
+8. Agenda del día en /barbero según barbero.dc.html: selector de día (anterior, hoy, siguiente), resumen del día (atendidas, pendientes, ingresos), lista de citas con hora, cliente, servicio, duración y precio. La próxima cita pendiente va resaltada. Estado siempre con palabra e ícono: 'Pendiente', 'Atendida', 'No asistió', 'Vencida' (is_overdue). Acciones por cita con botones de al menos 44 px: 'Atendida', 'No asistió' (solo si is_overdue), 'Cancelar' con confirmación, y 'WhatsApp' (enlace wa.me con el número y mensaje prellenado; oculto si no hay celular). Actualización automática cada 30 s con refetchInterval de TanStack Query, en pausa cuando la pestaña está oculta, y un indicador 'Actualizado hace X' accesible. Actualizaciones optimistas al marcar estados con reversión si el API falla.
+9. Nueva cita en /barbero/nueva según barbero-nueva.dc.html: interruptor 'Turno sin cita' (role='switch'): al activarlo oculta día y hora, llama a next-free y muestra 'Empiezas a las 12:30 pm'; si está apagado, elige día y hora con la disponibilidad del propio barbero. Nombre obligatorio, celular opcional con +57 y la ayuda 'Con celular, el cliente recibe el recordatorio por WhatsApp.' Resumen y 'Guardar cita'; al guardar vuelve a la agenda en el día de la cita con un aviso de éxito.
+10. Mi horario en /barbero/horario según barbero-horario.dc.html: edición por día con uno o dos tramos, copiar de un día a otro, y lista de ausencias con alta y baja. Si el API devuelve conflicts[], muéstralos en un Notice con el cliente, la hora y un enlace a su cita, y deja claro que no se cancelaron.
+11. Navegación inferior de tres pestañas (Agenda, Nueva cita, Mi horario) con la pestaña activa marcada con aria-current='page'.
+12. Pruebas E2E Playwright (viewport 390x844): iniciar sesión como barbero1 y ver su agenda; un cliente reserva desde la web pública y la cita aparece en la agenda del barbero en menos de 35 s; marcar 'Atendida' y ver el resumen actualizado; crear un turno sin cita y comprobar que ese hueco desaparece de /public/availability; cambiar el horario con una cita afectada y ver el aviso de conflicto; un barbero no puede abrir /admin (redirige a /barbero); escaneo axe sin violaciones serious o critical.
+
+RESTRICCIONES
+- El servidor decide is_overdue y las transiciones; el cliente no calcula reglas de negocio.
+- No expongas el celular completo salvo en el campo pensado para WhatsApp de la agenda propia del barbero.
+- Usa solo los componentes de la fase 4; añade variantes con prueba si faltan.
+- Sin WebSockets ni librerías nuevas: el sondeo de 30 s es suficiente en esta etapa.
+
+VERIFICACIÓN (ejecútala y resume la salida)
+make types && make lint && make test && pnpm --filter web e2e
+A mano en 390 px: inicia sesión como barbero1@imperio.test, agenda una cita desde otra pestaña anónima y observa que aparece sola en la agenda.
+
+AL TERMINAR
+Lista rutas nuevas del API con su regla de acceso, las pantallas con su ruta, los resultados de pruebas y las diferencias respecto a los diseños con motivo. Rama: fase-6-panel-barbero.

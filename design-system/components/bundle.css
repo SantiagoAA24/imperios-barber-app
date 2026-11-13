@@ -1,0 +1,69 @@
+/* Imperio Barber — estilos de componentes. Solo leen tokens (tokens.css). */
+.imp-btn,.imp-card,.imp-pill,.imp-day,.imp-slot{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,color .15s}
+.imp-btn:focus-visible,.imp-card:focus-visible,.imp-pill:focus-visible,.imp-day:focus-visible,.imp-slot:focus-visible,.imp-field input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Button */
+.imp-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);box-sizing:border-box;min-height:var(--control-lg);padding:0 24px;border:0;border-radius:var(--radius-md);font:600 16px/24px var(--font-sans);text-align:center}
+.imp-btn--block{display:flex;width:100%}
+.imp-btn--primary{background:var(--gold);color:var(--on-gold)}
+.imp-btn--secondary{background:var(--surface);color:var(--text);border:1px solid var(--line-strong)}
+.imp-btn:disabled{background:var(--surface-muted);color:var(--text-muted);border-color:transparent;cursor:not-allowed}
+
+/* ServiceCard */
+.imp-card{display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;width:100%;min-height:64px;padding:var(--space-4) 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);text-align:left}
+.imp-card[aria-pressed="true"]{background:var(--surface-selected);border-color:var(--gold)}
+.imp-card__text{display:flex;flex-direction:column;gap:3px}
+.imp-card__name{font:600 15px/22px var(--font-sans);color:var(--text)}
+.imp-card__meta{font:400 12.5px/18px var(--font-sans);color:var(--text-muted)}
+.imp-price{font:700 23px/28px var(--font-display);color:var(--gold);white-space:nowrap}
+
+/* BarberPill */
+.imp-pill{display:inline-flex;align-items:center;gap:var(--space-3);box-sizing:border-box;min-height:48px;padding:var(--space-2) 16px var(--space-2) var(--space-2);border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface);font:500 14px/20px var(--font-sans)}
+.imp-pill[aria-pressed="true"]{background:var(--surface-selected);border-color:var(--gold)}
+.imp-pill__avatar{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--radius-full);background:var(--surface-muted);color:var(--gold);font:600 12px/16px var(--font-sans)}
+
+/* DayChip */
+.imp-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-sizing:border-box;flex:0 0 62px;height:78px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--text)}
+.imp-day__wd{font:500 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.imp-day__n{font:700 28px/28px var(--font-display)}
+.imp-day[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.imp-day[aria-pressed="true"] .imp-day__wd{color:var(--on-gold)}
+
+/* TimeSlot */
+.imp-slot{display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:var(--control-sm);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:500 13.5px/18px var(--font-sans)}
+.imp-slot[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold);font-weight:600}
+.imp-slot:disabled{background:transparent;border:1px dashed var(--line-strong);color:var(--text-disabled);text-decoration:line-through;cursor:not-allowed}
+.imp-slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3)}
+
+/* TextField */
+.imp-field{display:flex;flex-direction:column;gap:6px}
+.imp-field label{font:500 13px/18px var(--font-sans);color:var(--text-muted)}
+.imp-field__box{display:flex;align-items:center;gap:var(--space-3);box-sizing:border-box;height:var(--control-md);padding:0 16px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface)}
+.imp-field__prefix{font:600 15px/22px var(--font-sans);color:var(--gold)}
+.imp-field input{flex:1;min-width:0;height:100%;padding:0;border:0;background:transparent;color:var(--text);font:400 16px/24px var(--font-sans)}
+.imp-field input::placeholder{color:var(--text-muted)}
+.imp-field__box:focus-within{border-color:var(--gold)}
+
+/* StepHeader */
+.imp-step{display:flex;align-items:center;gap:12px}
+.imp-step__n{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid var(--gold);border-radius:var(--radius-full);color:var(--gold);font:600 13px/18px var(--font-sans)}
+.imp-step__title{margin:0;font:600 26px/32px var(--font-display);color:var(--text)}
+
+/* SummaryCard */
+.imp-summary{display:flex;flex-direction:column;gap:var(--space-4);box-sizing:border-box;padding:22px var(--space-5);border:1px solid var(--gold-edge);border-radius:var(--radius-lg);background:var(--surface)}
+.imp-summary__row{display:flex;justify-content:space-between;gap:12px;font:400 14px/21px var(--font-sans)}
+.imp-summary__row span:first-child{color:var(--text-muted)}
+.imp-summary__row span:last-child{font-weight:600;text-align:right;color:var(--text)}
+.imp-summary__rule{height:1px;background:var(--line)}
+.imp-summary__total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:400 14px/21px var(--font-sans);color:var(--text-muted)}
+.imp-total{font:700 30px/36px var(--font-display);color:var(--gold)}
+
+/* Notice */
+.imp-notice{display:flex;align-items:flex-start;gap:var(--space-3);font:400 12.5px/18px var(--font-sans);color:var(--text-muted)}
+.imp-notice svg{flex:0 0 auto;margin-top:1px}
+.imp-notice--success{color:var(--success)}
+.imp-notice--danger{color:var(--danger)}
+
+/* BrandSeal */
+.imp-seal{display:block;border-radius:var(--radius-full)}
+.imp-seal--glow{box-shadow:var(--logo-glow)}
