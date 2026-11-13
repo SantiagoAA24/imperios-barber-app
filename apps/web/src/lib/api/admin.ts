@@ -4,6 +4,9 @@ import { api, ApiError, toApiError } from './client'
 import { unwrap } from './hooks'
 import { queryKeys } from './queryClient'
 import type {
+  AdminAgenda,
+  AdminAppointment,
+  AdminAppointmentCreateBody,
   AdminProduct,
   BarberCreateBody,
   BarberCreated,
@@ -203,5 +206,76 @@ export function useResetBarberPassword() {
         }),
       ),
     onSuccess: after,
+  })
+}
+
+// --- agenda -----------------------------------------------------------------------------------
+
+/** Sondeo de la agenda: el servidor decide qué está vencido, el cliente solo vuelve a preguntar. */
+export const ADMIN_AGENDA_REFRESH_MS = 30_000
+
+export function useAdminAgenda(from: string, to: string) {
+  return useQuery<AdminAgenda, ApiError>({
+    queryKey: [...queryKeys.adminAgenda, from, to],
+    queryFn: () =>
+      unwrap(api.GET('/api/v1/admin/appointments', { params: { query: { from, to } } })),
+    staleTime: 0,
+    refetchInterval: ADMIN_AGENDA_REFRESH_MS,
+    refetchIntervalInBackground: false,
+  })
+}
+
+function useAfterAppointmentChange() {
+  const client = useQueryClient()
+  return () => {
+    void client.invalidateQueries({ queryKey: queryKeys.adminAgenda })
+    // Cancelar o crear cambia los huecos libres de la web pública y del formulario.
+    void client.invalidateQueries({ queryKey: queryKeys.availability })
+    void client.invalidateQueries({ queryKey: queryKeys.adminAvailability })
+  }
+}
+
+export type AdminNewStatus = 'attended' | 'no_show' | 'cancelled'
+
+export function useAdminChangeStatus() {
+  const after = useAfterAppointmentChange()
+  return useMutation<AdminAppointment, ApiError, { id: string; status: AdminNewStatus }>({
+    mutationFn: ({ id, status }) =>
+      unwrap(
+        api.PATCH('/api/v1/admin/appointments/{appointment_id}', {
+          params: { path: { appointment_id: id } },
+          body: { status },
+        }),
+      ),
+    onSettled: after,
+  })
+}
+
+export function useAdminCreateAppointment() {
+  const after = useAfterAppointmentChange()
+  return useMutation<AdminAppointment, ApiError, AdminAppointmentCreateBody>({
+    mutationFn: (body) => unwrap(api.POST('/api/v1/admin/appointments', { body })),
+    onSettled: after,
+  })
+}
+
+export function useAdminAvailability(params: {
+  barberId: string
+  serviceId: string
+  date: string
+}) {
+  const ready = Boolean(params.barberId && params.serviceId && params.date)
+  return useQuery({
+    queryKey: [...queryKeys.adminAvailability, params.barberId, params.serviceId, params.date],
+    enabled: ready,
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/admin/availability', {
+          params: {
+            query: { barber_id: params.barberId, service_id: params.serviceId, date: params.date },
+          },
+        }),
+      ),
   })
 }

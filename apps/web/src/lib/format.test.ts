@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  formatClock,
+  minutesOfDay,
+  parseClock,
   addDays,
   bogotaDay,
   dayOfMonth,
@@ -89,5 +92,21 @@ describe('días de calendario en Bogotá', () => {
     expect(formatWeekdayShort('2026-11-13')).toBe('Vie')
     expect(formatWeekdayShort('2026-11-18')).toBe('Mié')
     expect(dayOfMonth('2026-11-13')).toBe(13)
+  })
+})
+
+describe('reloj del negocio', () => {
+  it('minutesOfDay usa la hora de Bogotá', () => {
+    expect(minutesOfDay('2026-11-13T15:30:00Z')).toBe(10 * 60 + 30)
+    expect(minutesOfDay('2026-11-14T04:30:00Z')).toBe(23 * 60 + 30) // sigue siendo el día 13
+    expect(minutesOfDay('2026-11-13T05:00:00Z')).toBe(0)
+  })
+  it('parseClock y formatClock', () => {
+    expect(parseClock('09:30')).toBe(570)
+    expect(parseClock('18:00:00')).toBe(1080)
+    expect(formatClock(570)).toBe('9:30 am')
+    expect(formatClock(720)).toBe('12:00 pm')
+    expect(formatClock(0)).toBe('12:00 am')
+    expect(formatClock(13 * 60)).toBe('1:00 pm')
   })
 })

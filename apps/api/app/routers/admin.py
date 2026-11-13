@@ -1,13 +1,20 @@
 import uuid
+from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 
 from app.core.clock import Now
 from app.core.db import DbSession
 from app.core.security import AdminUser
 from app.core.tenant import CurrentBusiness
+from app.models import AppointmentStatus
 from app.routers.booking import no_store
 from app.schemas.admin import (
+    AdminAgendaOut,
+    AdminAppointmentCreateIn,
+    AdminAppointmentOut,
+    AdminAppointmentPatchIn,
     AdminBarberListOut,
     AdminProductListOut,
     AdminProductOut,
@@ -27,7 +34,8 @@ from app.schemas.admin import (
 )
 from app.schemas.auth import PingOut
 from app.schemas.errors import ErrorBody
-from app.services import admin_barbers, admin_products, admin_services
+from app.schemas.me import OwnAvailabilityOut
+from app.services import admin_agenda, admin_barbers, admin_products, admin_services, booking
 
 router = APIRouter(
     prefix="/admin",
@@ -172,3 +180,66 @@ def reset_barber_password(
 ) -> TemporaryPasswordOut:
     password = admin_barbers.reset_password(session, user.business_id, barber_id)
     return TemporaryPasswordOut(temporary_password=password)
+
+
+# --- agenda -----------------------------------------------------------------------------------
+
+
+@router.get("/appointments", response_model=AdminAgendaOut)
+def list_appointments(
+    from_: Annotated[date, Query(alias="from")],
+    to: date,
+    business: CurrentBusiness,
+    user: AdminUser,
+    session: DbSession,
+    now: Now,
+    barber_id: uuid.UUID | None = None,
+    include_cancelled: bool = False,
+) -> AdminAgendaOut:
+    """Citas de un rango de días locales (máximo 8), con el celular siempre parcial."""
+    return admin_agenda.list_appointments(
+        session, business, from_, to, barber_id, include_cancelled, now
+    )
+
+
+@router.post("/appointments", response_model=AdminAppointmentOut, status_code=201)
+def create_appointment(
+    body: AdminAppointmentCreateIn,
+    business: CurrentBusiness,
+    user: AdminUser,
+    session: DbSession,
+    now: Now,
+) -> AdminAppointmentOut:
+    return admin_agenda.create_appointment(session, business, body, now)
+
+
+@router.patch("/appointments/{appointment_id}", response_model=AdminAppointmentOut)
+def update_appointment(
+    appointment_id: uuid.UUID,
+    body: AdminAppointmentPatchIn,
+    business: CurrentBusiness,
+    user: AdminUser,
+    session: DbSession,
+    now: Now,
+) -> AdminAppointmentOut:
+    return admin_agenda.change_status(
+        session, business, appointment_id, AppointmentStatus(body.status), now
+    )
+
+
+@router.get("/availability", response_model=OwnAvailabilityOut)
+def availability(
+    barber_id: uuid.UUID,
+    service_id: uuid.UUID,
+    on: Annotated[date, Query(alias="date")],
+    business: CurrentBusiness,
+    user: AdminUser,
+    session: DbSession,
+    now: Now,
+) -> dict[str, object]:
+    """Horarios libres de un barbero para crear una cita manual (sin margen de anticipación)."""
+    starts = admin_agenda.available_starts(session, business, barber_id, service_id, on, now)
+    return {
+        "date": on.isoformat(),
+        "slots": [{"starts_at": booking.iso_local(business, s)} for s in starts],
+    }

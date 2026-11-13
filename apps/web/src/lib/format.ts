@@ -90,3 +90,31 @@ export function formatWeekdayShort(value: string | Date): string {
 export function dayOfMonth(value: string | Date): number {
   return Number(bogotaDay(value).slice(8, 10))
 }
+
+const minutesFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** minutesOfDay('2026-11-13T15:30:00Z') -> 630 (10:30 am en Bogotá). */
+export function minutesOfDay(iso: string | Date): number {
+  const parts = minutesFormat.formatToParts(toDate(iso))
+  return Number(part(parts, 'hour')) * 60 + Number(part(parts, 'minute'))
+}
+
+/** 'HH:MM' o 'HH:MM:SS' -> minutos desde la medianoche. */
+export function parseClock(text: string): number {
+  const [h = '0', m = '0'] = text.split(':')
+  return Number(h) * 60 + Number(m)
+}
+
+/** formatClock(570) -> '9:30 am' (hora del negocio, sin fecha). */
+export function formatClock(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  const period = h >= 12 ? 'pm' : 'am'
+  const hour = h % 12 === 0 ? 12 : h % 12
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`
+}

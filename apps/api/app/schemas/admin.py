@@ -6,7 +6,17 @@ from datetime import datetime
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+)
+
+from app.models import AppointmentSource, AppointmentStatus
+from app.schemas.me import WalkInClientIn
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=60)]
 Description = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
@@ -243,3 +253,61 @@ class BarberUpdatedOut(BaseModel):
     barber: AdminBarberOut
     # Citas futuras en estado booked del barbero desactivado: no se cancelan.
     conflicts: list[BarberConflictOut]
+
+
+# --- agenda -----------------------------------------------------------------------------------
+
+
+class AgendaBarberOut(BaseModel):
+    id: uuid.UUID
+    display_name: str
+
+
+class AgendaServiceOut(BaseModel):
+    name: str
+    duration_min: int
+    uses_resource: bool
+
+
+class AgendaClientOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    # Siempre parcial ('300 *** 4821'): el celular completo solo sale en el detalle del cliente.
+    phone_masked: str | None
+
+
+class AdminAppointmentOut(BaseModel):
+    id: uuid.UUID
+    barber: AgendaBarberOut
+    service: AgendaServiceOut
+    client: AgendaClientOut
+    status: AppointmentStatus
+    source: AppointmentSource
+    starts_at: datetime
+    ends_at: datetime
+    price_cop: int
+    is_overdue: bool
+
+
+class AdminAgendaOut(BaseModel):
+    items: list[AdminAppointmentOut]
+    # Rejilla sugerida: inicio mínimo y cierre máximo de los horarios de los barberos activos
+    # para los días pedidos ("HH:MM", hora local). Sin horarios configurados: 09:00 a 18:00.
+    day_start: str
+    day_end: str
+
+
+class AdminAppointmentCreateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    barber_id: uuid.UUID
+    service_id: uuid.UUID
+    starts_at: AwareDatetime
+    client: WalkInClientIn
+    note: str | None = None
+
+
+class AdminAppointmentPatchIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["attended", "no_show", "cancelled"]

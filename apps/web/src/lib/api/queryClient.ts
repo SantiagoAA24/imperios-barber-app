@@ -20,6 +20,8 @@ export const queryKeys = {
   adminServices: ['admin', 'services'] as const,
   adminProducts: ['admin', 'products'] as const,
   adminBarbers: ['admin', 'barbers'] as const,
+  adminAgenda: ['admin', 'agenda'] as const,
+  adminAvailability: ['admin', 'availability'] as const,
 }
 
 export function createQueryClient(): QueryClient {
