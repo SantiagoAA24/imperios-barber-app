@@ -16,5 +16,7 @@ _login_email_item = parse(LOGIN_LIMIT)
 
 def hit_login_email(email: str) -> None:
     """Segundo tope del login: 5 intentos por minuto por correo, sin importar la IP."""
+    if not limiter.enabled:  # solo se apaga en E2E; en producción siempre está activo
+        return
     if not limiter.limiter.hit(_login_email_item, "login_email", email):
         raise ApiError(429, "rate_limited", RATE_LIMITED_MESSAGE, headers={"Retry-After": "60"})

@@ -120,3 +120,23 @@ Decisión:
 - **Service worker:** `vite-plugin-pwa` no activa `clientsClaim`, así que la primera visita no queda controlada por el service worker; el catálogo se guarda en caché desde la segunda carga. La prueba offline lo tiene en cuenta (recarga una vez).
 Motivo: cerrar los huecos sin cambiar el alcance de la fase.
 Impacto: la fase 6 (barbero) puede reutilizar `SlotPicker`/`useSlotPicker` y los componentes nuevos; la fase 8 debe quitar la marca legal de `/privacidad` solo tras la revisión.
+
+## 2026-11-13 · Decisiones de la fase 6 (panel del barbero)
+Contexto: el prompt de la fase 6 y los diseños `barbero*.dc.html` dejaban huecos o diferían en algunos puntos.
+Decisión:
+- **Rutas añadidas:** `GET /me/availability?service_id&date` (horarios libres del propio barbero, sin margen de anticipación) para la cita manual; el prompt no la listaba y la pública exige que el barbero sea visible al agendar.
+- **Respuestas:** la agenda devuelve `{date, appointments, summary}`; `summary.total` nunca cuenta canceladas (aunque se pida `include_cancelled`). `GET/PUT /me/schedule` usan `{schedule, conflicts}`; el PUT recibe `{schedule: [...]}`. `GET /me/time-off` lista solo ausencias en curso o futuras.
+- **Celular:** `phone_masked` ("300 *** 4567") siempre; `phone_e164` solo en citas pendientes o no asistió (las que se pueden necesitar contactar por WhatsApp).
+- **Transiciones:** booked→attended/no_show/cancelled y no_show→attended. `attended` desde 15 min antes (`too_early_for_attended`); `no_show` solo con `now > starts_at + tolerance_min`. no_show→attended puede chocar con una cita nueva en ese hueco: 409 `slot_taken`. Una cita ajena o de otro negocio responde 404.
+- **Next-free** (`availability/next_free.py`, pura y con pruebas): hoy, `now` redondeado hacia arriba a 5 min, sin cuadrícula de 30 ni margen de anticipación; 409 `no_free_time` si hoy ya no cabe.
+- **Turno sin cita y carrera:** si otra cita gana el hueco (p. ej. el otro barbero con el vaporizador), se responde 409 `slot_unavailable` con la nueva hora en `details.alternatives`, en vez de cambiar la hora en silencio.
+- **Nota y consentimiento:** sin migración. El cliente nuevo queda con `consent_at` nulo y `notes` = "Consentimiento recogido en persona." (+ nota opcional). La pantalla no expone el campo de nota todavía; la API sí (`note`).
+- **Horario:** tramos de 30 min, hasta 4 por día en la API (la pantalla ofrece 2), tramos pegados válidos. Una cita que no cabe entera en un tramo es conflicto; no se cancela nada.
+- **Ausencias:** la pantalla usa `datetime-local` interpretado en hora de Bogotá (UTC-5).
+- **Componentes nuevos (con prueba):** `Switch` y `StatusBadge`; íconos plus, check, papelera, alerta, WhatsApp y actualizar. `useSlotPicker` acepta `own` para reutilizar el selector con `/me/availability`.
+- **Sondeo:** `refetchInterval` de 30 s con `refetchIntervalInBackground: false`; "Actualizado hace X" se refresca cada 5 s y hay botón "Actualizar".
+- **Diferencias con el diseño:** botón "Atendida" (el diseño decía "Llegó"); sin tarjeta "Siguiente" separada ni barra de tolerancia (la siguiente se resalta dentro de la lista); sin "Hueco libre / Turno sin cita" intercalado en la lista; "Horas bloqueadas" pasó a "Ausencias"; el resumen es una tarjeta en el flujo (no barra fija) porque abajo va la navegación fija.
+- **Rate limit:** el tope de 5 intentos/min por correo ahora también respeta `RATE_LIMIT_ENABLED` (solo se apaga en E2E; en producción siempre activo).
+- **E2E:** el horario de barbero1 se fija a 00:00-23:30 antes de cada prueba para no depender de la hora de ejecución (falla solo si corre entre 23:45 y 00:00).
+Motivo: cerrar los huecos sin cambiar el alcance de la fase.
+Impacto: la fase 7 (admin) puede reutilizar `Switch`, `StatusBadge` y los conflictos de horario.
