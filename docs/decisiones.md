@@ -140,3 +140,17 @@ Decisión:
 - **E2E:** el horario de barbero1 se fija a 00:00-23:30 antes de cada prueba para no depender de la hora de ejecución (falla solo si corre entre 23:45 y 00:00).
 Motivo: cerrar los huecos sin cambiar el alcance de la fase.
 Impacto: la fase 7 (admin) puede reutilizar `Switch`, `StatusBadge` y los conflictos de horario.
+
+## 2026-11-13 · Decisiones de la fase 7, PR 1 (Servicios)
+Contexto: primera pantalla del panel de administración; el prompt y `design/screens/admin-servicios.dc.html` dejaban huecos o diferían.
+Decisión:
+- **Rutas:** `GET/POST /admin/services`, `PATCH/DELETE /admin/services/{id}` y `PUT /admin/services/order`, todas con `require_role('admin')` y filtradas por el `business_id` del token (un servicio de otro negocio responde 404). `GET` y `PUT order` devuelven `{items, resources}`: los recursos del negocio salen ahí para no añadir una ruta solo para el checkbox del vaporizador.
+- **Orden:** `PUT /admin/services/order` exige la lista completa de ids, sin repetir ni ajenos (422 `invalid_order`); asigna `sort` 0..n-1. Un servicio nuevo entra al final. El orden es el mismo en la web pública.
+- **PATCH parcial:** solo cambian los campos enviados; `description` y `resource_id` aceptan `null`, el resto no. Un `resource_id` de otro negocio responde 422 `invalid_resource`. Precio y duración se copian a la cita al reservar, así que el cambio solo afecta a las reservas futuras (prueba con una cita antes y otra después).
+- **DELETE:** 409 `has_history` si existe cualquier cita (incluidas canceladas) con ese servicio; la FK queda como segunda defensa. Mensaje tal cual lo pidió el prompt.
+- **Prueba de acceso:** `tests/api/test_admin_acceso.py` parametriza 401/403 sobre todas las operaciones `/admin` leídas del OpenAPI de la app; las pantallas siguientes quedan cubiertas sin tocarla.
+- **Frontend:** `Switch` en la columna "Estado" (desactivar pide confirmación; activar no), "Subir"/"Bajar" como botones, panel lateral con el mismo formulario para crear y editar, aviso de cambios sin guardar. Como la app usa `BrowserRouter` (sin `useBlocker`), el aviso intercepta los clics en enlaces internos y `beforeunload` (`useUnsavedGuard`, reutilizable en Productos y Barberos).
+- **Catálogo público:** responde `Cache-Control: public, max-age=60`, así que un cambio de precio puede tardar hasta un minuto en verse en un navegador que ya lo cargó. No se cambió; la prueba E2E usa un visitante nuevo.
+- **Diferencias con el diseño:** columna "Estado" con interruptor en vez de "Visible" (y "Oculto para los clientes" bajo el nombre); se añaden "Subir/Bajar" y "Eliminar servicio" (el diseño traía "Archivar"); "Nota para el cliente" pasó a "Descripción para el cliente" (es `description`, máx. 200); el checkbox del vaporizador solo aparece si el negocio tiene un recurso; el panel no se abre por defecto (aparece al pulsar "Editar" o "Agregar servicio"); sin el bloque "Ajustes" en la barra lateral (no existe la pantalla); iconos de la barra lateral sin añadir (la barra ya existía sin ellos).
+Motivo: cerrar los huecos sin cambiar el alcance del PR.
+Impacto: Productos reutiliza `CatalogHeader`, `useUnsavedGuard`, `moveId` y el patrón del panel; Barberos, `useUnsavedGuard`.

@@ -137,3 +137,16 @@ def make_schedule(
             BarberSchedule(barber_id=barber.id, weekday=weekday, start_time=start, end_time=end)
         )
     session.commit()
+
+
+def admin_headers(
+    session: Session, business: Business, host: str = "imperio.test"
+) -> dict[str, str]:
+    """Cabeceras con la cookie de acceso de un admin nuevo del negocio dado."""
+    from tests.conftest import make_settings
+
+    user = make_user(session, business, UserRole.admin)
+    from app.core.security import create_access_token
+
+    token = create_access_token(user, make_settings())
+    return {"Host": host, "Cookie": f"access_token={token}"}
