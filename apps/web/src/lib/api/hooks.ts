@@ -10,7 +10,7 @@ export function isTransientError(error: unknown): boolean {
   return !(error instanceof ApiError) || error.status >= 500
 }
 
-async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
+export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   const { data, error, response } = await request
   if (data === undefined) throw toApiError(response.status, error)
   return data
@@ -50,19 +50,37 @@ export type AvailabilityParams = {
   barberId: string | null
   /** Día de calendario en Bogotá, AAAA-MM-DD. */
   date: string
+  /** `true`: la disponibilidad del propio barbero (`/me/availability`, sin margen de anticipación). */
+  own?: boolean
 }
 
-function availabilityOptions({ serviceId, barberId, date }: AvailabilityParams) {
+function availabilityOptions({ serviceId, barberId, date, own = false }: AvailabilityParams) {
   return {
-    queryKey: [...queryKeys.availability, serviceId, barberId ?? 'any', date] as const,
-    queryFn: () =>
-      unwrap(
+    queryKey: [
+      ...queryKeys.availability,
+      own ? 'me' : 'public',
+      serviceId,
+      barberId ?? 'any',
+      date,
+    ] as const,
+    queryFn: async () => {
+      if (own) {
+        const mine = await unwrap(
+          api.GET('/api/v1/me/availability', {
+            params: { query: { service_id: serviceId, date } },
+          }),
+        )
+        // Misma forma que la pública para reutilizar el selector de horarios.
+        return { date: mine.date, slots: mine.slots.map((s) => ({ ...s, barber_ids: [] })) }
+      }
+      return unwrap(
         api.GET('/api/v1/public/availability', {
           params: {
             query: { service_id: serviceId, date, ...(barberId ? { barber_id: barberId } : {}) },
           },
         }),
-      ),
+      )
+    },
   }
 }
 
@@ -71,10 +89,11 @@ export function useWeekAvailability(
   serviceId: string | null,
   barberId: string | null,
   dates: string[],
+  own = false,
 ) {
   return useQueries({
     queries: dates.map((date) => ({
-      ...availabilityOptions({ serviceId: serviceId ?? '', barberId, date }),
+      ...availabilityOptions({ serviceId: serviceId ?? '', barberId, date, own }),
       enabled: serviceId !== null,
     })),
   })

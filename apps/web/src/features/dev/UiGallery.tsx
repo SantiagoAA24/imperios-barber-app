@@ -12,8 +12,10 @@ import {
   ProductCard,
   ServiceCard,
   Skeleton,
+  StatusBadge,
   StepHeader,
   SummaryCard,
+  Switch,
   TextField,
   TimeSlot,
 } from '../../components'
@@ -52,6 +54,7 @@ export default function UiGallery() {
   const [slot, setSlot] = useState('11:00 am')
   const [name, setName] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [switchOn, setSwitchOn] = useState(false)
 
   return (
     <div className="min-h-dvh bg-bg">
@@ -201,6 +204,24 @@ export default function UiGallery() {
             <Button block size="md" variant="ghost">
               Prefiero reprogramar
             </Button>
+          </div>
+        </Block>
+
+        <Block title="Switch">
+          <div className="flex items-center gap-14">
+            <Switch label="Turno sin cita" checked={switchOn} onCheckedChange={setSwitchOn} />
+            <span className="text-small">{switchOn ? 'Encendido' : 'Apagado'}</span>
+          </div>
+          <Switch label="Trabajo este día" checked disabled onCheckedChange={() => {}} />
+        </Block>
+
+        <Block title="StatusBadge">
+          <div className="flex flex-wrap gap-14">
+            <StatusBadge status="booked" />
+            <StatusBadge status="attended" />
+            <StatusBadge status="no_show" />
+            <StatusBadge status="overdue" />
+            <StatusBadge status="cancelled" />
           </div>
         </Block>
 

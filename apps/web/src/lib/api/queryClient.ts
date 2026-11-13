@@ -13,6 +13,10 @@ export const queryKeys = {
   availability: ['availability'] as const,
   appointment: ['appointment'] as const,
   me: ['me'] as const,
+  agenda: ['barber', 'agenda'] as const,
+  schedule: ['barber', 'schedule'] as const,
+  timeOff: ['barber', 'time-off'] as const,
+  nextFree: ['barber', 'next-free'] as const,
 }
 
 export function createQueryClient(): QueryClient {

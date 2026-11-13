@@ -17,16 +17,17 @@ type Pick = { day: string | null; slot: { scope: string; value: string } | null 
 /**
  * Disponibilidad de los próximos 7 días para un servicio y un barbero, más el día y la hora
  * elegidos. Solo muestra lo que devuelve la API: no calcula horarios ni plazos.
+ * Con `own` usa la disponibilidad del propio barbero (panel del barbero).
  * La hora elegida pertenece al par servicio+barbero: si cambia cualquiera de los dos, se limpia.
  */
-export function useSlotPicker(serviceId: string | null, barberId: string | null) {
+export function useSlotPicker(serviceId: string | null, barberId: string | null, own = false) {
   const client = useQueryClient()
   const [today] = useState(() => bogotaDay(new Date()))
   const dates = useMemo(
     () => Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i)),
     [today],
   )
-  const queries = useWeekAvailability(serviceId, barberId, dates)
+  const queries = useWeekAvailability(serviceId, barberId, dates, own)
   const [pick, setPick] = useState<Pick>({ day: null, slot: null })
   const scope = `${serviceId}|${barberId}`
 

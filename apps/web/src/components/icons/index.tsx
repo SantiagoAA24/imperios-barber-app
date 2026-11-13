@@ -95,3 +95,41 @@ export const StoreIcon = (props: IconProps) => (
     <path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M10 20v-6h4v6" />
   </Icon>
 )
+
+export const PlusIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </Icon>
+)
+
+export const CheckIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </Icon>
+)
+
+export const TrashIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10 11v5M14 11v5" />
+  </Icon>
+)
+
+export const AlertIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 4l9 16H3z" />
+    <path d="M12 10v4M12 17.2v.1" />
+  </Icon>
+)
+
+export const WhatsappIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 19l1.2-3.6A8 8 0 1 1 9 18z" />
+    <path d="M9.5 9.5c.5 2 2 3.5 4 4" />
+  </Icon>
+)
+
+export const RefreshIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M20 11a8 8 0 0 0-14.5-4M4 4v3.5h3.5M4 13a8 8 0 0 0 14.5 4M20 20v-3.5h-3.5" />
+  </Icon>
+)
