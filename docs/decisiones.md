@@ -12,6 +12,20 @@ Motivo: por qué.
 Impacto: qué fases o secciones cambian.
 ```
 
+## 2026-11-13 · Decisiones de la fase 4 (frontend base)
+Contexto: el prompt de la fase 4 deja detalles abiertos o choca con los archivos del sistema de diseño.
+Decisión:
+- Nombres de tokens CSS por valor en px (`--space-4` = 4 px) como pide el prompt; se añadieron `--text-*` (tamaño, interlineado, peso por estilo) y `--shadow-logo-glow`, porque los componentes no pueden usar tamaños fuera de los tokens.
+- `@theme inline` apunta a las variables de `tokens.css`; donde el nombre coincide la variable de tema se apunta a sí misma, y `tokens.css` (sin capa) gana a `@layer theme`.
+- Sin `@types/node`: `vite.config.ts` usa una declaración mínima de `node:fs`.
+- Los íconos de la PWA se generan con un script en Node puro (zlib) desde el sello PNG, sin añadir una librería de imágenes. TODO: logo vectorial.
+- Los chunks de barbero/admin no se precachean; sin red, `RouteBoundary` y `RutaProtegida` llevan a `/offline`.
+- Las pruebas de 44 px leen `min-height`/`height` declarados (jsdom no calcula layout); en Chromium real se comprobó con getBoundingClientRect en `/ui`.
+- Se omitió `@testing-library/user-event` y `jest-dom` (no nombrados): se usa `fireEvent` y aserciones simples.
+- El CI del job web instala uv y ejecuta `make types` + `git diff --exit-code`.
+Motivo: cerrar los huecos sin añadir dependencias no pedidas.
+Impacto: fases 5 en adelante reutilizan componentes, cliente y guardia de rutas.
+
 ## 2026-11-13 · Decisiones de la fase 1 (esquema y modelos)
 Contexto: el prompt de la fase 1 deja varios detalles abiertos.
 Decisión:

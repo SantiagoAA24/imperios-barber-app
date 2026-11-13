@@ -12,7 +12,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "types": "openapi-typescript openapi.json -o src/lib/api/schema.d.ts",
-    "lint:colors": "node scripts/check-no-hex.mjs"
+    "lint:colors": "node scripts/check-no-hex.mjs",
+    "preview": "vite preview",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",

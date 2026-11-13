@@ -95,6 +95,16 @@ describe('rutas protegidas', () => {
     expect(screen.getByRole('link', { name: 'Clientes' }).getAttribute('aria-current')).toBe('page')
   })
 
+  it('sin red, una ruta protegida lleva a /offline', async () => {
+    stubApi({
+      'GET /api/v1/auth/me': () => {
+        throw new TypeError('Failed to fetch')
+      },
+    })
+    renderAt('/barbero')
+    expect(await screen.findByRole('heading', { name: 'Sin conexión' })).toBeTruthy()
+  })
+
   it('un barbero que abre /admin vuelve a /barbero', async () => {
     stubApi({ 'GET /api/v1/auth/me': () => json(200, barber) })
     renderAt('/admin')

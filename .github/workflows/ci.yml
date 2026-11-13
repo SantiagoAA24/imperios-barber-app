@@ -49,8 +49,17 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
       - run: pnpm install --frozen-lockfile
+      - run: (cd apps/api && uv sync --locked)
+      # Regenera tokens.css, openapi.json y schema.d.ts; si algo cambia, el esquema estaba desactualizado.
+      - run: make types
+      - run: git diff --exit-code
       - run: pnpm --filter web lint
+      - run: pnpm --filter web lint:colors
       - run: pnpm --filter web format:check
       - run: pnpm --filter web typecheck
       - run: pnpm --filter web test
