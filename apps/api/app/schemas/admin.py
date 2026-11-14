@@ -2,7 +2,7 @@
 
 import re
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
@@ -374,3 +374,50 @@ class ClientNotesIn(BaseModel):
 class ClientNotesOut(BaseModel):
     id: uuid.UUID
     notes: str | None
+
+
+# --- resumen ----------------------------------------------------------------------------------
+
+
+class OverviewAppointmentsOut(BaseModel):
+    # ``total`` no cuenta las canceladas (igual que el resumen del panel del barbero).
+    total: int
+    attended: int
+    no_show: int
+    cancelled: int
+    booked: int
+
+
+class RevenueDayOut(BaseModel):
+    date: date
+    revenue_cop: int
+    count: int
+
+
+class TopServiceOut(BaseModel):
+    service_id: uuid.UUID
+    name: str
+    count: int
+    revenue_cop: int
+
+
+class BarberStatsOut(BaseModel):
+    barber_id: uuid.UUID
+    display_name: str
+    count: int
+    revenue_cop: int
+    no_show: int
+
+
+class OverviewOut(BaseModel):
+    # Rango pedido (o la semana actual, de lunes a domingo, en hora de Bogotá), ambos inclusive.
+    date_from: date
+    date_to: date
+    revenue_cop: int
+    projected_cop: int
+    appointments: OverviewAppointmentsOut
+    attendance_rate: float | None
+    revenue_by_day: list[RevenueDayOut]
+    top_services: list[TopServiceOut]
+    by_barber: list[BarberStatsOut]
+    new_clients: int

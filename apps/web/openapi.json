@@ -3566,6 +3566,114 @@
           }
         }
       }
+    },
+    "/api/v1/admin/overview": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Overview",
+        "description": "Cifras del negocio en un rango (máximo 366 días; por defecto, la semana actual).",
+        "operationId": "overview_api_v1_admin_overview_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4217,6 +4325,40 @@
         "additionalProperties": false,
         "type": "object",
         "title": "BarberPatchIn"
+      },
+      "BarberStatsOut": {
+        "properties": {
+          "barber_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Barber Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "revenue_cop": {
+            "type": "integer",
+            "title": "Revenue Cop"
+          },
+          "no_show": {
+            "type": "integer",
+            "title": "No Show"
+          }
+        },
+        "type": "object",
+        "required": [
+          "barber_id",
+          "display_name",
+          "count",
+          "revenue_cop",
+          "no_show"
+        ],
+        "title": "BarberStatsOut"
       },
       "BarberUpdatedOut": {
         "properties": {
@@ -4976,6 +5118,114 @@
         ],
         "title": "OrderIn"
       },
+      "OverviewAppointmentsOut": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "attended": {
+            "type": "integer",
+            "title": "Attended"
+          },
+          "no_show": {
+            "type": "integer",
+            "title": "No Show"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          },
+          "booked": {
+            "type": "integer",
+            "title": "Booked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "attended",
+          "no_show",
+          "cancelled",
+          "booked"
+        ],
+        "title": "OverviewAppointmentsOut"
+      },
+      "OverviewOut": {
+        "properties": {
+          "date_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Date From"
+          },
+          "date_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Date To"
+          },
+          "revenue_cop": {
+            "type": "integer",
+            "title": "Revenue Cop"
+          },
+          "projected_cop": {
+            "type": "integer",
+            "title": "Projected Cop"
+          },
+          "appointments": {
+            "$ref": "#/components/schemas/OverviewAppointmentsOut"
+          },
+          "attendance_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Rate"
+          },
+          "revenue_by_day": {
+            "items": {
+              "$ref": "#/components/schemas/RevenueDayOut"
+            },
+            "type": "array",
+            "title": "Revenue By Day"
+          },
+          "top_services": {
+            "items": {
+              "$ref": "#/components/schemas/TopServiceOut"
+            },
+            "type": "array",
+            "title": "Top Services"
+          },
+          "by_barber": {
+            "items": {
+              "$ref": "#/components/schemas/BarberStatsOut"
+            },
+            "type": "array",
+            "title": "By Barber"
+          },
+          "new_clients": {
+            "type": "integer",
+            "title": "New Clients"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date_from",
+          "date_to",
+          "revenue_cop",
+          "projected_cop",
+          "appointments",
+          "attendance_rate",
+          "revenue_by_day",
+          "top_services",
+          "by_barber",
+          "new_clients"
+        ],
+        "title": "OverviewOut"
+      },
       "OwnAvailabilityOut": {
         "properties": {
           "date": {
@@ -5424,6 +5674,30 @@
         ],
         "title": "ResourceOut"
       },
+      "RevenueDayOut": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "revenue_cop": {
+            "type": "integer",
+            "title": "Revenue Cop"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "revenue_cop",
+          "count"
+        ],
+        "title": "RevenueDayOut"
+      },
       "ScheduleBlock": {
         "properties": {
           "weekday": {
@@ -5795,6 +6069,35 @@
           "reason"
         ],
         "title": "TimeOffOut"
+      },
+      "TopServiceOut": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "revenue_cop": {
+            "type": "integer",
+            "title": "Revenue Cop"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "name",
+          "count",
+          "revenue_cop"
+        ],
+        "title": "TopServiceOut"
       },
       "UpdateStatusIn": {
         "properties": {

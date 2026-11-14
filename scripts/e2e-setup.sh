@@ -35,4 +35,7 @@ uv run alembic upgrade head
 echo "E2E: sembrando…"
 uv run python -m app.seed
 
+echo "E2E: historial del resumen…"
+uv run python -m app.seed_e2e
+
 echo "E2E: base ${E2E_DB} lista."

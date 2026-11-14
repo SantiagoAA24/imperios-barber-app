@@ -1,10 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
 import { AdminLayout } from '../../app/layouts/AdminLayout'
-import { ComingSoon } from '../../app/pages/ComingSoon'
 import { NotFound } from '../../app/pages/NotFound'
 import AgendaPage from './AgendaPage'
 import BarbersPage from './BarbersPage'
 import ClientsPage from './ClientsPage'
+import OverviewPage from './OverviewPage'
 import ProductsPage from './ProductsPage'
 import ServicesPage from './ServicesPage'
 import WeekPage from './WeekPage'
@@ -14,7 +14,7 @@ export default function AdminArea() {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route index element={<ComingSoon name="Resumen" />} />
+        <Route index element={<OverviewPage />} />
         <Route path="agenda" element={<AgendaPage />} />
         <Route path="semana" element={<WeekPage />} />
         <Route path="servicios" element={<ServicesPage />} />

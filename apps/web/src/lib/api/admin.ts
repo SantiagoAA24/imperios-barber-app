@@ -5,6 +5,7 @@ import { unwrap } from './hooks'
 import { queryKeys } from './queryClient'
 import type {
   AdminAgenda,
+  AdminOverview,
   AdminClientDetail,
   AdminClientList,
   ClientFilter,
@@ -356,4 +357,20 @@ export function useSaveClientNotes() {
       },
     },
   )
+}
+
+// --- resumen ----------------------------------------------------------------------------------
+
+/** Sin fechas el servidor devuelve la semana actual (lunes a domingo, hora de Bogotá). */
+export function useAdminOverview(range: { from: string; to: string } | null) {
+  return useQuery<AdminOverview, ApiError>({
+    queryKey: [...queryKeys.adminOverview, range?.from ?? 'week', range?.to ?? 'week'],
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/admin/overview', {
+          params: { query: range ? { from: range.from, to: range.to } : {} },
+        }),
+      ),
+  })
 }

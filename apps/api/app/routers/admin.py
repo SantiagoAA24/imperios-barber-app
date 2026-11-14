@@ -30,6 +30,7 @@ from app.schemas.admin import (
     ClientNotesIn,
     ClientNotesOut,
     OrderIn,
+    OverviewOut,
     ProductCreateIn,
     ProductPatchIn,
     ResourceOut,
@@ -44,6 +45,7 @@ from app.services import (
     admin_agenda,
     admin_barbers,
     admin_clients,
+    admin_overview,
     admin_products,
     admin_services,
     booking,
@@ -286,3 +288,19 @@ def update_client(
     client_id: uuid.UUID, body: ClientNotesIn, user: AdminUser, session: DbSession
 ) -> ClientNotesOut:
     return admin_clients.update_notes(session, user.business_id, client_id, body.notes)
+
+
+# --- resumen ----------------------------------------------------------------------------------
+
+
+@router.get("/overview", response_model=OverviewOut)
+def overview(
+    business: CurrentBusiness,
+    user: AdminUser,
+    session: DbSession,
+    now: Now,
+    from_: Annotated[date | None, Query(alias="from")] = None,
+    to: date | None = None,
+) -> OverviewOut:
+    """Cifras del negocio en un rango (máximo 366 días; por defecto, la semana actual)."""
+    return admin_overview.overview(session, business, from_, to, now)

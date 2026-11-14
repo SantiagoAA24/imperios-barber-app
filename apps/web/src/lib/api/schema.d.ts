@@ -687,6 +687,26 @@ export interface paths {
         patch: operations["update_client_api_v1_admin_clients__client_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description Cifras del negocio en un rango (máximo 366 días; por defecto, la semana actual).
+         */
+        get: operations["overview_api_v1_admin_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -952,6 +972,22 @@ export interface components {
             visible_in_booking?: boolean | null;
             /** Active */
             active?: boolean | null;
+        };
+        /** BarberStatsOut */
+        BarberStatsOut: {
+            /**
+             * Barber Id
+             * Format: uuid
+             */
+            barber_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Count */
+            count: number;
+            /** Revenue Cop */
+            revenue_cop: number;
+            /** No Show */
+            no_show: number;
         };
         /** BarberUpdatedOut */
         BarberUpdatedOut: {
@@ -1251,6 +1287,47 @@ export interface components {
             /** Ids */
             ids: string[];
         };
+        /** OverviewAppointmentsOut */
+        OverviewAppointmentsOut: {
+            /** Total */
+            total: number;
+            /** Attended */
+            attended: number;
+            /** No Show */
+            no_show: number;
+            /** Cancelled */
+            cancelled: number;
+            /** Booked */
+            booked: number;
+        };
+        /** OverviewOut */
+        OverviewOut: {
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
+            /** Revenue Cop */
+            revenue_cop: number;
+            /** Projected Cop */
+            projected_cop: number;
+            appointments: components["schemas"]["OverviewAppointmentsOut"];
+            /** Attendance Rate */
+            attendance_rate: number | null;
+            /** Revenue By Day */
+            revenue_by_day: components["schemas"]["RevenueDayOut"][];
+            /** Top Services */
+            top_services: components["schemas"]["TopServiceOut"][];
+            /** By Barber */
+            by_barber: components["schemas"]["BarberStatsOut"][];
+            /** New Clients */
+            new_clients: number;
+        };
         /** OwnAvailabilityOut */
         OwnAvailabilityOut: {
             /** Date */
@@ -1425,6 +1502,18 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** RevenueDayOut */
+        RevenueDayOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Revenue Cop */
+            revenue_cop: number;
+            /** Count */
+            count: number;
+        };
         /** ScheduleBlock */
         ScheduleBlock: {
             /** Weekday */
@@ -1562,6 +1651,20 @@ export interface components {
             ends_at: string;
             /** Reason */
             reason: string | null;
+        };
+        /** TopServiceOut */
+        TopServiceOut: {
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+            /** Name */
+            name: string;
+            /** Count */
+            count: number;
+            /** Revenue Cop */
+            revenue_cop: number;
         };
         /** UpdateStatusIn */
         UpdateStatusIn: {
@@ -4438,6 +4541,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientNotesOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_v1_admin_overview_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewOut"];
                 };
             };
             /** @description Unauthorized */

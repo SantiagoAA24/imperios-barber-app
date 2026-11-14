@@ -47,3 +47,5 @@ export type ClientFilter = 'all' | 'frequent' | 'no_show'
 export type AdminClientListItem = components['schemas']['ClientListItemOut']
 export type AdminClientList = components['schemas']['ClientListOut']
 export type AdminClientDetail = components['schemas']['ClientDetailOut']
+export type AdminOverview = components['schemas']['OverviewOut']
+export type RevenueDay = components['schemas']['RevenueDayOut']
