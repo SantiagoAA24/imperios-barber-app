@@ -49,7 +49,14 @@ async function json<T>(response: Awaited<ReturnType<APIRequestContext['get']>>):
  */
 export async function bookViaApi(
   request: APIRequestContext,
-  options: { service: string; barber: string; dayOffset: number; slotIndex?: number },
+  options: {
+    service: string
+    barber: string
+    dayOffset: number
+    slotIndex?: number
+    clientName?: string
+    phone?: string
+  },
 ) {
   const services = await json<Service[]>(await request.get(`${API}/services`))
   const barbers = await json<Barber[]>(await request.get(`${API}/barbers`))
@@ -70,7 +77,10 @@ export async function bookViaApi(
         service_id: service.id,
         barber_id: barber.id,
         starts_at: slot.starts_at,
-        client: { name: 'Cliente de prueba', phone: randomPhone() },
+        client: {
+          name: options.clientName ?? 'Cliente de prueba',
+          phone: options.phone ?? randomPhone(),
+        },
         consent: true,
         website: '',
       },

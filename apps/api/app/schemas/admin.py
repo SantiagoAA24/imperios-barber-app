@@ -311,3 +311,66 @@ class AdminAppointmentPatchIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["attended", "no_show", "cancelled"]
+
+
+# --- clientes ---------------------------------------------------------------------------------
+
+ClientFilter = Literal["all", "frequent", "no_show"]
+Notes = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+
+
+class ClientListItemOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    phone_masked: str | None
+    # Citas no canceladas (atendidas, inasistencias y pendientes).
+    appointments_count: int
+    last_visit_at: datetime | None
+    # atendidas / (atendidas + inasistencias); nulo si todavía no hay ninguna de las dos.
+    attendance_rate: float | None
+    no_show_count: int
+
+
+class ClientListOut(BaseModel):
+    items: list[ClientListItemOut]
+    next_cursor: str | None
+    # Clientes que cumplen búsqueda y filtro (no solo esta página).
+    total: int
+
+
+class ClientAppointmentOut(BaseModel):
+    id: uuid.UUID
+    starts_at: datetime
+    status: AppointmentStatus
+    service_name: str
+    barber_name: str
+    price_cop: int
+
+
+class ClientDetailOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    # Celular COMPLETO: solo aquí. Cada lectura queda registrada en audit_log.
+    phone: str | None
+    since: datetime
+    visits: int
+    no_show_count: int
+    favorite_service: str | None
+    recent_appointments: list[ClientAppointmentOut]
+    notes: str | None
+
+
+class ClientNotesIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    notes: Notes | None = None
+
+    @field_validator("notes")
+    @classmethod
+    def _empty(cls, value: str | None) -> str | None:
+        return _blank_to_none(value)
+
+
+class ClientNotesOut(BaseModel):
+    id: uuid.UUID
+    notes: str | None

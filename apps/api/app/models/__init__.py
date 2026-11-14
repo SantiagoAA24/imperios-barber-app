@@ -1,4 +1,5 @@
 from app.models.appointment import Appointment, AppointmentSource, AppointmentStatus
+from app.models.audit_log import AuditLog
 from app.models.barber import Barber
 from app.models.barber_schedule import BarberSchedule
 from app.models.barber_time_off import BarberTimeOff
@@ -15,6 +16,7 @@ __all__ = [
     "Appointment",
     "AppointmentSource",
     "AppointmentStatus",
+    "AuditLog",
     "Barber",
     "BarberSchedule",
     "BarberTimeOff",

@@ -4,6 +4,7 @@ import { ComingSoon } from '../../app/pages/ComingSoon'
 import { NotFound } from '../../app/pages/NotFound'
 import AgendaPage from './AgendaPage'
 import BarbersPage from './BarbersPage'
+import ClientsPage from './ClientsPage'
 import ProductsPage from './ProductsPage'
 import ServicesPage from './ServicesPage'
 import WeekPage from './WeekPage'
@@ -19,7 +20,7 @@ export default function AdminArea() {
         <Route path="servicios" element={<ServicesPage />} />
         <Route path="productos" element={<ProductsPage />} />
         <Route path="barberos" element={<BarbersPage />} />
-        <Route path="clientes" element={<ComingSoon name="Clientes" />} />
+        <Route path="clientes" element={<ClientsPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

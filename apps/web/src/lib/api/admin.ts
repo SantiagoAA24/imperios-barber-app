@@ -1,10 +1,13 @@
 // Hooks de administración (/api/v1/admin). El estado del servidor vive en TanStack Query.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, toApiError } from './client'
 import { unwrap } from './hooks'
 import { queryKeys } from './queryClient'
 import type {
   AdminAgenda,
+  AdminClientDetail,
+  AdminClientList,
+  ClientFilter,
   AdminAppointment,
   AdminAppointmentCreateBody,
   AdminProduct,
@@ -278,4 +281,79 @@ export function useAdminAvailability(params: {
         }),
       ),
   })
+}
+
+// --- clientes ---------------------------------------------------------------------------------
+
+export const CLIENTS_PAGE_SIZE = 20
+
+/** Lista paginada por cursor; el filtrado y la búsqueda los hace el servidor. */
+export function useAdminClients(params: { q: string; filter: ClientFilter }) {
+  return useInfiniteQuery<
+    AdminClientList,
+    ApiError,
+    { pages: AdminClientList[] },
+    unknown[],
+    string | null
+  >({
+    queryKey: [...queryKeys.adminClients, params.q, params.filter],
+    initialPageParam: null,
+    staleTime: 0,
+    queryFn: ({ pageParam }) =>
+      unwrap(
+        api.GET('/api/v1/admin/clients', {
+          params: {
+            query: {
+              q: params.q || undefined,
+              filter: params.filter,
+              limit: CLIENTS_PAGE_SIZE,
+              cursor: pageParam ?? undefined,
+            },
+          },
+        }),
+      ),
+    getNextPageParam: (last) => last.next_cursor,
+  })
+}
+
+/**
+ * Detalle con el celular COMPLETO. Cada lectura queda en audit_log en el servidor, así que no se
+ * vuelve a pedir al enfocar la ventana ni se guarda en caché al cerrar el panel.
+ */
+export function useAdminClient(id: string | null) {
+  return useQuery<AdminClientDetail, ApiError>({
+    queryKey: [...queryKeys.adminClient, id],
+    enabled: id !== null,
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/admin/clients/{client_id}', {
+          params: { path: { client_id: id ?? '' } },
+        }),
+      ),
+  })
+}
+
+export function useSaveClientNotes() {
+  const client = useQueryClient()
+  return useMutation<{ id: string; notes: string | null }, ApiError, { id: string; notes: string }>(
+    {
+      mutationFn: ({ id, notes }) =>
+        unwrap(
+          api.PATCH('/api/v1/admin/clients/{client_id}', {
+            params: { path: { client_id: id } },
+            body: { notes: notes.trim() || null },
+          }),
+        ),
+      onSuccess: (saved) => {
+        // Se actualizan las notas en el detalle abierto sin volver a pedirlo (otra lectura auditada).
+        client.setQueryData<AdminClientDetail>([...queryKeys.adminClient, saved.id], (old) =>
+          old ? { ...old, notes: saved.notes } : old,
+        )
+      },
+    },
+  )
 }

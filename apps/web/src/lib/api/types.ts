@@ -43,3 +43,7 @@ export type BarberConflict = components['schemas']['BarberConflictOut']
 export type AdminAgenda = components['schemas']['AdminAgendaOut']
 export type AdminAppointment = components['schemas']['AdminAppointmentOut']
 export type AdminAppointmentCreateBody = components['schemas']['AdminAppointmentCreateIn']
+export type ClientFilter = 'all' | 'frequent' | 'no_show'
+export type AdminClientListItem = components['schemas']['ClientListItemOut']
+export type AdminClientList = components['schemas']['ClientListOut']
+export type AdminClientDetail = components['schemas']['ClientDetailOut']

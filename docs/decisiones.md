@@ -204,3 +204,16 @@ Decisión:
 - **Diferencias con el diseño:** "Hoy" en vez de "Esta semana" para volver a la actual (es el mismo enlace que en la vista Día); la leyenda de carriles es una lista; "Nueva cita" abre el mismo panel de la vista Día.
 Motivo: cerrar los huecos sin cambiar el alcance del PR.
 Impacto: ninguno en otras pantallas salvo el ajuste de `AdminLayout`.
+
+## 2026-11-13 · Decisiones de la fase 7, PR 6 (Clientes)
+Contexto: sexta pantalla del admin; datos personales, así que hay rastro de auditoría.
+Decisión:
+- **Rutas** (solo admin, filtradas por `business_id`): `GET /admin/clients?q&filter&cursor&limit`, `GET /admin/clients/{id}` y `PATCH /admin/clients/{id} {notes}`.
+- **Migración 0004:** tabla `audit_log` (`business_id`, `user_id`, `action`, `entity`, `entity_id`, `at`, más los campos estándar). El prompt no pedía `business_id`, se añadió para cumplir «toda consulta filtra por business_id». Cada `GET /admin/clients/{id}` inserta una fila `view_client_phone` en la misma transacción que la lectura; la lista, las notas y las lecturas de clientes de otro negocio (404) no dejan fila.
+- **Definiciones:** `appointments_count` = citas no canceladas (atendidas, inasistencias y pendientes); `last_visit_at` = última cita atendida; `attendance_rate` = atendidas / (atendidas + inasistencias), `null` si no hay ninguna; «frecuente» = 5 o más atendidas; «no_show» = al menos una inasistencia. El detalle trae `visits` (atendidas), `no_show_count`, `favorite_service` (el más atendido; empate: el más reciente), las últimas 10 citas, `notes` y `since`.
+- **Búsqueda:** si el texto son solo dígitos (con espacios, `+`, `·`, `*` o guiones) busca por los **últimos** dígitos del celular (`LIKE '%dígitos'`); si no, por nombre sin mayúsculas ni tildes (`translate(lower(name), 'áéíóúüñ', 'aeiouun')` en SQL y la misma tabla en Python, sin extensión `unaccent`). La ñ cuenta como n; `%` y `_` se escapan. No hay índice para esto: es un recorrido de los clientes del negocio (cientos o pocos miles); si crece, se añade `pg_trgm` en una migración propia.
+- **Cursor:** paginación por teclado `(lower(name), id)` codificada en base64; `limit` 1-50 (20 por defecto); cursor inválido responde 422 `invalid_cursor`. La respuesta añade `total` (clientes que cumplen búsqueda y filtro) para mostrar «Mostrando N de M».
+- **Privacidad en el frontend:** el detalle se pide una vez al seleccionar, sin refetch al enfocar la ventana, y no queda en caché al cerrar el panel (`gcTime: 0`). Guardar notas actualiza el detalle en memoria sin volver a leerlo (cada lectura queda auditada). En la lista el celular siempre va parcial.
+- **Diferencias con el diseño:** el subtítulo trae solo el total (el diseño decía «12 nuevos este mes»; esa cifra llega con Resumen: `new_clients`); las notas son un `textarea` con contador de 500 (el diseño traía un `input`); «Última visita» dice «Sin visitas» cuando no hay atendidas; el botón de WhatsApp es un enlace real a `wa.me` que se abre en otra pestaña.
+Motivo: cerrar los huecos sin cambiar el alcance del PR.
+Impacto: ninguno en otras pantallas.

@@ -24,6 +24,11 @@ from app.schemas.admin import (
     BarberCreateIn,
     BarberPatchIn,
     BarberUpdatedOut,
+    ClientDetailOut,
+    ClientFilter,
+    ClientListOut,
+    ClientNotesIn,
+    ClientNotesOut,
     OrderIn,
     ProductCreateIn,
     ProductPatchIn,
@@ -35,7 +40,14 @@ from app.schemas.admin import (
 from app.schemas.auth import PingOut
 from app.schemas.errors import ErrorBody
 from app.schemas.me import OwnAvailabilityOut
-from app.services import admin_agenda, admin_barbers, admin_products, admin_services, booking
+from app.services import (
+    admin_agenda,
+    admin_barbers,
+    admin_clients,
+    admin_products,
+    admin_services,
+    booking,
+)
 
 router = APIRouter(
     prefix="/admin",
@@ -243,3 +255,34 @@ def availability(
         "date": on.isoformat(),
         "slots": [{"starts_at": booking.iso_local(business, s)} for s in starts],
     }
+
+
+# --- clientes ---------------------------------------------------------------------------------
+
+
+@router.get("/clients", response_model=ClientListOut)
+def list_clients(
+    user: AdminUser,
+    session: DbSession,
+    q: Annotated[str | None, Query(max_length=60)] = None,
+    filter: ClientFilter = "all",
+    cursor: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> ClientListOut:
+    """Lista paginada por cursor. El celular va siempre parcial."""
+    return admin_clients.list_clients(
+        session, user.business_id, q=q, filter_=filter, cursor=cursor, limit=limit
+    )
+
+
+@router.get("/clients/{client_id}", response_model=ClientDetailOut)
+def get_client(client_id: uuid.UUID, user: AdminUser, session: DbSession) -> ClientDetailOut:
+    """Único lugar con el celular COMPLETO; cada lectura queda en ``audit_log``."""
+    return admin_clients.client_detail(session, user, client_id)
+
+
+@router.patch("/clients/{client_id}", response_model=ClientNotesOut)
+def update_client(
+    client_id: uuid.UUID, body: ClientNotesIn, user: AdminUser, session: DbSession
+) -> ClientNotesOut:
+    return admin_clients.update_notes(session, user.business_id, client_id, body.notes)
