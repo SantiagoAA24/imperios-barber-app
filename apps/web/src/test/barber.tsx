@@ -5,13 +5,18 @@ import { MemoryRouter } from 'react-router-dom'
 import { createQueryClient } from '../lib/api/queryClient'
 import type { Agenda, MeAppointment } from '../lib/api/types'
 import { bogotaDay } from '../lib/format'
-import { json } from './api'
+import { BUSINESS, json } from './api'
 import type { Handler } from './api'
 
 export const TODAY = bogotaDay(new Date())
 
 export const ME = { id: '44444444-0000-4000-8000-000000000001', name: 'Barbero 1', role: 'barber' }
-export const meHandler: Record<string, Handler> = { 'GET /api/v1/auth/me': () => json(200, ME) }
+export const meHandler: Record<string, Handler> = {
+  'GET /api/v1/auth/me': () => json(200, ME),
+  // Todas las pantallas del barbero consultan «por revisar» y el negocio; por defecto, nada.
+  'GET /api/v1/me/appointments/pending-review': () => json(200, { count: 0, items: [] }),
+  'GET /api/v1/public/business': () => json(200, BUSINESS),
+}
 
 export function meAppt(overrides: Partial<MeAppointment> & { time?: string } = {}): MeAppointment {
   const { time = '10:00', ...rest } = overrides
@@ -29,6 +34,7 @@ export function meAppt(overrides: Partial<MeAppointment> & { time?: string } = {
       phone_e164: '+573001234567',
     },
     is_overdue: false,
+    reminder_sent_at: null,
     ...rest,
   }
 }

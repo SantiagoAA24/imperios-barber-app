@@ -3,7 +3,13 @@ import { useSearchParams } from 'react-router-dom'
 import { Skeleton } from '../../components/Skeleton'
 import { StatusBadge } from '../../components/StatusBadge'
 import { cx, FOCUS_RING, TRANSITION } from '../../components/classes'
-import { useAdminAgenda, useAdminBarbers, useAdminServices } from '../../lib/api/admin'
+import {
+  useAdminAgenda,
+  useAdminBarbers,
+  useAdminChangeStatus,
+  useAdminPendingReview,
+  useAdminServices,
+} from '../../lib/api/admin'
 import type { AdminAppointment } from '../../lib/api/types'
 import {
   addDays,
@@ -13,6 +19,7 @@ import {
   formatTime,
   minutesOfDay,
 } from '../../lib/format'
+import { PendingReviewSection } from '../shared/PendingReviewList'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
 import { AgendaHeader } from './AgendaHeader'
 import {
@@ -26,6 +33,7 @@ import {
 } from './agendaLayout'
 import { AppointmentPanel, badgeStatus } from './AppointmentPanel'
 import { NewAppointmentPanel } from './NewAppointmentPanel'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -86,6 +94,7 @@ function Block({
 
 /** Agenda del día (admin-agenda.dc.html): una columna por barbero y una del vaporizador. */
 export default function AgendaPage() {
+  useDocumentTitle('Agenda del día')
   const [params, setParams] = useSearchParams()
   const today = bogotaDay(new Date())
   const raw = params.get('fecha')
@@ -93,6 +102,8 @@ export default function AgendaPage() {
   const agenda = useAdminAgenda(day, day)
   const barbers = useAdminBarbers()
   const services = useAdminServices()
+  const review = useAdminPendingReview()
+  const resolve = useAdminChangeStatus()
   const nowMin = useNowMinutes()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
@@ -122,7 +133,11 @@ export default function AgendaPage() {
   }`
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <AgendaHeader
         view="day"
         date={day}
@@ -134,6 +149,18 @@ export default function AgendaPage() {
           setSelectedId(null)
           setCreating(true)
         }}
+      />
+      {/* Siempre montada: su región `role="status"` debe seguir ahí cuando se marca la última. */}
+      <PendingReviewSection
+        headingId="por-revisar-titulo"
+        items={(review.data?.items ?? []).map((a) => ({
+          id: a.id,
+          starts_at: a.starts_at,
+          clientName: a.client.name,
+          serviceName: a.service.name,
+          barberName: a.barber.display_name,
+        }))}
+        resolve={(id, status) => resolve.mutateAsync({ id, status })}
       />
       <label className="flex max-w-[260px] flex-col gap-[6px] font-body text-label text-text-muted">
         Ir a un día
@@ -193,7 +220,7 @@ export default function AgendaPage() {
               </div>
               {items.length === 0 && (
                 <p className="m-0 border-b border-line px-20 py-14 text-small text-text-muted">
-                  No hay citas este día. Usa «Nueva cita» para crear una.
+                  No hay citas para este día. Crea una con «Nueva cita».
                 </p>
               )}
               <div className="relative grid" style={{ gridTemplateColumns: gridCols, height }}>

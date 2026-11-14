@@ -12,7 +12,7 @@ export function ConflictList({ conflicts, title }: { conflicts: Conflict[]; titl
   return (
     <div className="flex flex-col gap-10 rounded-card border border-line-strong bg-surface p-14">
       <Notice tone="danger">
-        <strong className="font-semibold">{title}</strong> No se cancelaron: siguen reservadas hasta
+        <strong className="font-semibold">{title}</strong> No se cancelaron: siguen agendadas hasta
         que tú las muevas o canceles.
       </Notice>
       <ul className="m-0 flex list-none flex-col gap-8 p-0">

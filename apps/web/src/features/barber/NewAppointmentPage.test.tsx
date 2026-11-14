@@ -96,9 +96,7 @@ describe('Nueva cita del barbero', () => {
     fireEvent.change(screen.getByLabelText('Celular (WhatsApp, opcional)'), {
       target: { value: '300 555 1212' },
     })
-    expect(
-      screen.getByText('Con celular, el cliente recibe el recordatorio por WhatsApp.'),
-    ).toBeTruthy()
+    expect(screen.getByText('Con celular podrás recordarle su cita por WhatsApp.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cita' }))
 
     await waitFor(() => expect(calls.some((c) => c.method === 'POST')).toBe(true))

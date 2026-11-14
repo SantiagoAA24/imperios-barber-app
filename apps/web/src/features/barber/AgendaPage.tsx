@@ -5,14 +5,22 @@ import { Notice } from '../../components/Notice'
 import { Skeleton } from '../../components/Skeleton'
 import { ArrowLeftIcon, ChevronRightIcon, PlusIcon, RefreshIcon } from '../../components/icons'
 import { cx, FOCUS_RING, TAPPABLE, TRANSITION } from '../../components/classes'
-import { useAgenda, useChangeStatus } from '../../lib/api/barber'
+import {
+  useAgenda,
+  useChangeStatus,
+  usePendingReview,
+  useReminderSent,
+  useResolvePending,
+} from '../../lib/api/barber'
 import type { NewStatus } from '../../lib/api/barber'
 import { useMe } from '../../lib/api/auth'
-import { isTransientError } from '../../lib/api/hooks'
+import { isTransientError, useBusiness } from '../../lib/api/hooks'
 import { addDays, bogotaDay, formatCOP, formatDayLong } from '../../lib/format'
+import { PendingReviewSection } from '../shared/PendingReviewList'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
 import { AppointmentRow } from './AppointmentRow'
 import { updatedAgo } from './updatedAgo'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/
 
@@ -45,6 +53,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 /** Agenda del día del barbero (barbero.dc.html): resumen, siguiente cita y acciones por cita. */
 export function AgendaPage() {
+  useDocumentTitle('Mi agenda')
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -57,6 +66,10 @@ export function AgendaPage() {
 
   const agenda = useAgenda(date)
   const change = useChangeStatus(date)
+  const business = useBusiness()
+  const reminder = useReminderSent(date)
+  const pending = usePendingReview()
+  const resolvePending = useResolvePending()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [busyIds, setBusyIds] = useState<string[]>([])
 
@@ -107,7 +120,7 @@ export function AgendaPage() {
   const summary = agenda.data?.summary
 
   return (
-    <main className="flex flex-col gap-20 px-20 pb-20">
+    <main id="contenido" tabIndex={-1} className="outline-none flex flex-col gap-20 px-20 pb-20">
       <div className="flex flex-col gap-4">
         {me.data && <p className="m-0 text-small text-text-muted">Hola, {me.data.name}</p>}
         <h1 className="m-0 font-display text-h1 text-text">Mi agenda</h1>
@@ -150,6 +163,18 @@ export function AgendaPage() {
           <ChevronRightIcon size={20} />
         </button>
       </nav>
+
+      {/* Siempre montada: su región `role="status"` debe seguir ahí cuando se marca la última. */}
+      <PendingReviewSection
+        headingId="por-revisar-titulo"
+        items={(pending.data?.items ?? []).map((a) => ({
+          id: a.id,
+          starts_at: a.starts_at,
+          clientName: a.client.name,
+          serviceName: a.service.name,
+        }))}
+        resolve={(id, status) => resolvePending.mutateAsync({ id, status })}
+      />
 
       <section aria-label="Resumen del día" className="flex flex-col gap-10">
         <div className="flex gap-10">
@@ -223,7 +248,7 @@ export function AgendaPage() {
 
         {agenda.data && appointments.length === 0 && (
           <div className="flex flex-col items-start gap-10">
-            <Notice>No tienes citas este día.</Notice>
+            <Notice>No tienes citas para este día.</Notice>
             <Button
               size="md"
               variant="secondary"
@@ -246,6 +271,9 @@ export function AgendaPage() {
                 appointment={a}
                 isNext={a.id === nextId}
                 today={today}
+                now={now}
+                toleranceMin={business.data?.tolerance_min ?? 5}
+                onReminderSent={() => reminder.mutate(a.id)}
                 highlighted={a.id === highlightId}
                 busy={busyIds.includes(a.id)}
                 error={errors[a.id] ?? null}

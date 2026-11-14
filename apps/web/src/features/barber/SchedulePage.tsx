@@ -35,6 +35,7 @@ import {
   WEEKDAYS,
 } from './scheduleDraft'
 import type { Draft } from './scheduleDraft'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 function TimeSelect({
   label,
@@ -81,6 +82,7 @@ function errorMessage(error: unknown, what: string): string {
 
 /** Mi horario (barbero-horario.dc.html): días y tramos, copiar entre días y ausencias. */
 export function SchedulePage() {
+  useDocumentTitle('Mi horario')
   const schedule = useSchedule()
   const save = useReplaceSchedule()
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -109,7 +111,7 @@ export function SchedulePage() {
   }
 
   return (
-    <main className="flex flex-col gap-20 px-20 pb-20">
+    <main id="contenido" tabIndex={-1} className="outline-none flex flex-col gap-20 px-20 pb-20">
       <div className="flex flex-col gap-4">
         <p className="m-0 text-small text-text-muted">Cuándo te pueden agendar</p>
         <h1 className="m-0 font-display text-h1 text-text">Mi horario</h1>

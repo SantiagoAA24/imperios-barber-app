@@ -118,3 +118,18 @@ export function formatClock(minutes: number): string {
   const hour = h % 12 === 0 ? 12 : h % 12
   return `${hour}:${String(m).padStart(2, '0')} ${period}`
 }
+
+/**
+ * formatAgo('2026-11-13T15:30:00Z', now) -> 'hace 5 min'. Solo para marcas de tiempo recientes
+ * (p. ej. "Recordatorio enviado hace 5 min"); nunca devuelve tiempos negativos.
+ */
+export function formatAgo(iso: string | Date, now: Date | number): string {
+  const ms = Math.max(0, new Date(now).getTime() - toDate(iso).getTime())
+  const minutes = Math.floor(ms / 60_000)
+  if (minutes < 1) return 'hace un momento'
+  if (minutes < 60) return `hace ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `hace ${hours} h`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? 'hace 1 día' : `hace ${days} días`
+}

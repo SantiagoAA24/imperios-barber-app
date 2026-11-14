@@ -6,6 +6,7 @@ import {
   addDays,
   bogotaDay,
   dayOfMonth,
+  formatAgo,
   formatCOP,
   formatDayLong,
   formatDuration,
@@ -108,5 +109,19 @@ describe('reloj del negocio', () => {
     expect(formatClock(720)).toBe('12:00 pm')
     expect(formatClock(0)).toBe('12:00 am')
     expect(formatClock(13 * 60)).toBe('1:00 pm')
+  })
+})
+
+describe('formatAgo', () => {
+  const now = new Date('2026-11-13T15:00:00Z')
+  it('resume el tiempo transcurrido', () => {
+    expect(formatAgo('2026-11-13T14:59:40Z', now)).toBe('hace un momento')
+    expect(formatAgo('2026-11-13T14:55:00Z', now)).toBe('hace 5 min')
+    expect(formatAgo('2026-11-13T12:10:00Z', now)).toBe('hace 2 h')
+    expect(formatAgo('2026-11-12T14:00:00Z', now)).toBe('hace 1 día')
+    expect(formatAgo('2026-11-10T14:00:00Z', now)).toBe('hace 3 días')
+  })
+  it('nunca devuelve tiempos negativos', () => {
+    expect(formatAgo('2026-11-13T15:05:00Z', now)).toBe('hace un momento')
   })
 })

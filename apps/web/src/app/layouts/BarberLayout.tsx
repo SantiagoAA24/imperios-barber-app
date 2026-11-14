@@ -1,8 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { BrandSeal } from '../../components/BrandSeal'
 import { Button } from '../../components/Button'
+import { CountBadge } from '../../components/CountBadge'
 import { CalendarIcon, ClockIcon, PlusCircleIcon } from '../../components/icons'
 import { cx, FOCUS_RING, TRANSITION } from '../../components/classes'
+import { usePendingReview } from '../../lib/api/barber'
 import { useLogoutAndLeave } from '../useLogoutAndLeave'
 
 const TABS = [
@@ -14,6 +16,7 @@ const TABS = [
 /** Barbero (móvil): cabecera con el sello y barra inferior de 3 pestañas. */
 export function BarberLayout() {
   const { logout, pending } = useLogoutAndLeave()
+  const review = usePendingReview()
   return (
     <div className="min-h-dvh bg-bg">
       <div className="mx-auto min-h-dvh w-full max-w-[480px] pb-[calc(var(--control-54)+var(--space-20))]">
@@ -37,7 +40,7 @@ export function BarberLayout() {
                 end={tab.end}
                 className={({ isActive }) =>
                   cx(
-                    'flex min-h-control-54 flex-col items-center justify-center gap-4 border-t-2 text-caption',
+                    'relative flex min-h-control-54 flex-col items-center justify-center gap-4 border-t-2 text-caption',
                     isActive
                       ? 'border-gold font-semibold text-gold'
                       : 'border-transparent text-text-muted hover:text-text',
@@ -47,7 +50,14 @@ export function BarberLayout() {
                 }
               >
                 {tab.icon}
-                {tab.label}
+                {tab.label}{' '}
+                {tab.to === '/barbero' && (
+                  // Después del texto en el DOM («Agenda, 3 citas por revisar»); se coloca sobre el ícono.
+                  <CountBadge
+                    count={review.data?.count ?? 0}
+                    className="absolute top-[4px] left-[calc(50%+4px)]"
+                  />
+                )}
               </NavLink>
             </li>
           ))}

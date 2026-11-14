@@ -1080,6 +1080,151 @@
         }
       }
     },
+    "/api/v1/me/appointments/pending-review": {
+      "get": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Pending Review",
+        "description": "Citas propias en 'booked' que terminaron hace más de 2 horas (últimos 7 días).",
+        "operationId": "pending_review_api_v1_me_appointments_pending_review_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingReviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/appointments/{appointment_id}/reminder-sent": {
+      "post": {
+        "tags": [
+          "barbero"
+        ],
+        "summary": "Reminder Sent",
+        "operationId": "reminder_sent_api_v1_me_appointments__appointment_id__reminder_sent_post",
+        "parameters": [
+          {
+            "name": "appointment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Appointment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeAppointmentOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/appointments/{appointment_id}": {
       "patch": {
         "tags": [
@@ -3061,6 +3206,68 @@
         }
       }
     },
+    "/api/v1/admin/appointments/pending-review": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Pending Review",
+        "description": "Citas de todo el negocio en 'booked' que terminaron hace más de 2 horas (7 días).",
+        "operationId": "pending_review_api_v1_admin_appointments_pending_review_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPendingReviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/appointments/{appointment_id}": {
       "patch": {
         "tags": [
@@ -3875,6 +4082,27 @@
           "must_change_password"
         ],
         "title": "AdminBarberOut"
+      },
+      "AdminPendingReviewOut": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminAppointmentOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "items"
+        ],
+        "title": "AdminPendingReviewOut"
       },
       "AdminProductListOut": {
         "properties": {
@@ -4937,6 +5165,18 @@
           "is_overdue": {
             "type": "boolean",
             "title": "Is Overdue"
+          },
+          "reminder_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminder Sent At"
           }
         },
         "type": "object",
@@ -4948,7 +5188,8 @@
           "ends_at",
           "service",
           "client",
-          "is_overdue"
+          "is_overdue",
+          "reminder_sent_at"
         ],
         "title": "MeAppointmentOut"
       },
@@ -5260,6 +5501,28 @@
           "starts_at"
         ],
         "title": "OwnSlotOut"
+      },
+      "PendingReviewOut": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MeAppointmentOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "items"
+        ],
+        "title": "PendingReviewOut",
+        "description": "Citas que siguen en 'booked' mucho después de terminar: alguien debe marcarlas."
       },
       "PingOut": {
         "properties": {

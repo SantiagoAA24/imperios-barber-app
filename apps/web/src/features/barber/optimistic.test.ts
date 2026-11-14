@@ -12,6 +12,7 @@ function appt(id: string, status: MeAppointment['status'], price = 22000): MeApp
     service: { name: 'Corte básico', duration_min: 30, price_cop: price, uses_resource: false },
     client: { id: `c-${id}`, name: 'Carlos', phone_masked: null, phone_e164: null },
     is_overdue: status === 'booked',
+    reminder_sent_at: null,
   }
 }
 

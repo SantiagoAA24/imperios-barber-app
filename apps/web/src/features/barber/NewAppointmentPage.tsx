@@ -19,6 +19,7 @@ import { SlotConflict } from '../booking/SlotConflict'
 import { SlotPicker } from '../booking/SlotPicker'
 import { useSlotPicker } from '../booking/useSlotPicker'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const NAME_ERROR = 'Escribe el nombre del cliente (entre 2 y 60 caracteres).'
 
@@ -38,6 +39,7 @@ function SectionTitle({ n, children }: { n: number; children: string }) {
 
 /** Nueva cita para quien llega sin cita o llama (barbero-nueva.dc.html). */
 export function NewAppointmentPage() {
+  useDocumentTitle('Nueva cita')
   const navigate = useNavigate()
   const me = useMe()
   const services = useServices()
@@ -113,7 +115,7 @@ export function NewAppointmentPage() {
   }
 
   return (
-    <main className="flex flex-col gap-20 px-20 pb-20">
+    <main id="contenido" tabIndex={-1} className="outline-none flex flex-col gap-20 px-20 pb-20">
       <div className="flex flex-col gap-4">
         <p className="m-0 text-small text-text-muted">Para un cliente que llega o llama</p>
         <h1 className="m-0 font-display text-h1 text-text">Nueva cita</h1>
@@ -243,7 +245,7 @@ export function NewAppointmentPage() {
           inputMode="numeric"
           autoComplete="off"
           placeholder="300 000 0000"
-          hint="Con celular, el cliente recibe el recordatorio por WhatsApp."
+          hint="Con celular podrás recordarle su cita por WhatsApp."
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           error={errors.phone}

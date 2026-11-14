@@ -5,6 +5,7 @@ import { unwrap } from './hooks'
 import { queryKeys } from './queryClient'
 import type {
   AdminAgenda,
+  AdminPendingReview,
   AdminOverview,
   AdminClientDetail,
   AdminClientList,
@@ -225,6 +226,17 @@ export function useAdminAgenda(from: string, to: string) {
       unwrap(api.GET('/api/v1/admin/appointments', { params: { query: { from, to } } })),
     staleTime: 0,
     refetchInterval: ADMIN_AGENDA_REFRESH_MS,
+    refetchIntervalInBackground: false,
+  })
+}
+
+/** Citas del negocio aún «pendientes» que terminaron hace más de 2 horas (últimos 7 días). */
+export function useAdminPendingReview() {
+  return useQuery<AdminPendingReview, ApiError>({
+    queryKey: queryKeys.adminPendingReview,
+    queryFn: () => unwrap(api.GET('/api/v1/admin/appointments/pending-review')),
+    staleTime: 0,
+    refetchInterval: 60_000,
     refetchIntervalInBackground: false,
   })
 }

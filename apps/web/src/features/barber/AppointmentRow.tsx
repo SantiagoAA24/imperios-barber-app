@@ -7,8 +7,8 @@ import { CheckIcon, ClockIcon, TrashIcon, WhatsappIcon } from '../../components/
 import { cx } from '../../components/classes'
 import type { NewStatus } from '../../lib/api/barber'
 import type { MeAppointment } from '../../lib/api/types'
-import { formatCOP, formatDuration, formatTime } from '../../lib/format'
-import { whatsappUrl } from './whatsapp'
+import { formatAgo, formatCOP, formatDuration, formatTime } from '../../lib/format'
+import { canRemind, reminderUrl, whatsappUrl } from '../../lib/whatsapp'
 
 export type AppointmentRowProps = {
   appointment: MeAppointment
@@ -16,6 +16,12 @@ export type AppointmentRowProps = {
   isNext: boolean
   /** Día de calendario de hoy (AAAA-MM-DD); solo para redactar el mensaje de WhatsApp. */
   today: string
+  /** Reloj de la pantalla (ms): decide si falta menos de 24 h y el «hace X» del recordatorio. */
+  now: number
+  /** Minutos de tolerancia del negocio, para el texto del recordatorio. */
+  toleranceMin: number
+  /** Se llama después de abrir WhatsApp para registrar el envío (reminder_sent_at). */
+  onReminderSent: () => void
   /** Llegada desde un enlace (p. ej. un conflicto de horario): se marca para encontrarla. */
   highlighted?: boolean
   busy: boolean
@@ -32,6 +38,9 @@ export function AppointmentRow({
   appointment: a,
   isNext,
   today,
+  now,
+  toleranceMin,
+  onReminderSent,
   highlighted = false,
   busy,
   error,
@@ -41,6 +50,15 @@ export function AppointmentRow({
   const headingId = `cita-${a.id}-titulo`
   const open = a.status === 'booked' || a.status === 'no_show'
   const phone = a.client.phone_e164
+  const remindHref = canRemind(a, now)
+    ? reminderUrl(phone, {
+        clientName: a.client.name,
+        serviceName: a.service.name,
+        startsAt: a.starts_at,
+        toleranceMin,
+      })
+    : null
+  const sentAgo = a.reminder_sent_at ? formatAgo(a.reminder_sent_at, now) : null
 
   return (
     <li id={`cita-${a.id}`} className="list-none">
@@ -110,6 +128,25 @@ export function AppointmentRow({
                 onClick={() => setConfirming(true)}
               >
                 Cancelar
+              </Button>
+            )}
+            {remindHref && (
+              <Button
+                size="md"
+                variant="secondary"
+                icon={<WhatsappIcon size={18} />}
+                href={remindHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onReminderSent}
+                aria-label={
+                  sentAgo
+                    ? `Recordatorio enviado ${sentAgo}. Reenviar por WhatsApp a ${a.client.name} (se abre en otra pestaña)`
+                    : `Recordar por WhatsApp a ${a.client.name} (se abre en otra pestaña)`
+                }
+                className="min-w-full flex-1"
+              >
+                {sentAgo ? `Recordatorio enviado ${sentAgo}` : 'Recordar por WhatsApp'}
               </Button>
             )}
             {phone && (

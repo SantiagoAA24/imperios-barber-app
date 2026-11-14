@@ -96,7 +96,7 @@ describe('Agenda del día', () => {
     renderAgenda()
     await screen.findAllByRole('article')
     const [, overdue, pending] = screen.getAllByRole('article') as HTMLElement[]
-    const link = within(overdue!).getByRole('link', { name: /WhatsApp a Juan P\./ })
+    const link = within(overdue!).getByRole('link', { name: /^WhatsApp a Juan P\./ })
     const url = new URL(link.getAttribute('href') ?? '')
     expect(url.origin + url.pathname).toBe('https://wa.me/573001234567')
     expect(url.searchParams.get('text')).toMatch(/^Hola Juan, .*hoy a las 10:00 am\.$/)
@@ -230,7 +230,7 @@ describe('Agenda del día', () => {
 
   it('día sin citas: aviso y atajo a registrar un turno sin cita', async () => {
     renderAgenda({ 'GET /api/v1/me/appointments': () => json(200, agendaOf([])) })
-    expect(await screen.findByText('No tienes citas este día.')).toBeTruthy()
+    expect(await screen.findByText('No tienes citas para este día.')).toBeTruthy()
     fireEvent.click(screen.getByRole('link', { name: 'Registrar un turno sin cita' }))
     expect(await screen.findByText('Pantalla nueva cita')).toBeTruthy()
   })

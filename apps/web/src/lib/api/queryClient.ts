@@ -14,6 +14,8 @@ export const queryKeys = {
   appointment: ['appointment'] as const,
   me: ['me'] as const,
   agenda: ['barber', 'agenda'] as const,
+  // Cuelga de `agenda`: toda invalidación de la agenda refresca también «por revisar».
+  pendingReview: ['barber', 'agenda', 'por-revisar'] as const,
   schedule: ['barber', 'schedule'] as const,
   timeOff: ['barber', 'time-off'] as const,
   nextFree: ['barber', 'next-free'] as const,
@@ -21,6 +23,7 @@ export const queryKeys = {
   adminProducts: ['admin', 'products'] as const,
   adminBarbers: ['admin', 'barbers'] as const,
   adminAgenda: ['admin', 'agenda'] as const,
+  adminPendingReview: ['admin', 'agenda', 'por-revisar'] as const,
   adminClients: ['admin', 'clients'] as const,
   adminOverview: ['admin', 'overview'] as const,
   adminClient: ['admin', 'client'] as const,

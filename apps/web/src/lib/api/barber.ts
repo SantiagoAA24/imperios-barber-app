@@ -8,6 +8,7 @@ import type {
   Agenda,
   MeAppointment,
   MeCreateAppointmentBody,
+  PendingReview,
   ScheduleBlock,
   ScheduleResult,
   TimeOffCreated,
@@ -79,6 +80,83 @@ export function useChangeStatus(date: string) {
       void client.invalidateQueries({ queryKey: queryKeys.agenda })
       // Cancelar o reactivar cambia los huecos que ve la web pública.
       void client.invalidateQueries({ queryKey: queryKeys.availability })
+    },
+  })
+}
+
+/** Sondeo de «citas por revisar»: cambian despacio (una cita cruza las 2 horas una vez). */
+export const PENDING_REVIEW_REFRESH_MS = 60_000
+
+/** Citas propias aún «pendientes» que terminaron hace más de 2 horas (últimos 7 días). */
+export function usePendingReview() {
+  return useQuery<PendingReview, ApiError>({
+    queryKey: queryKeys.pendingReview,
+    queryFn: () => unwrap(api.GET('/api/v1/me/appointments/pending-review')),
+    staleTime: 0,
+    refetchInterval: PENDING_REVIEW_REFRESH_MS,
+    refetchIntervalInBackground: false,
+  })
+}
+
+/** Marca una cita por revisar como atendida o no asistió; la saca de la lista al instante. */
+export function useResolvePending() {
+  const client = useQueryClient()
+  return useMutation<
+    MeAppointment,
+    ApiError,
+    { id: string; status: 'attended' | 'no_show' },
+    { previous: PendingReview | undefined }
+  >({
+    mutationFn: ({ id, status }) =>
+      unwrap(
+        api.PATCH('/api/v1/me/appointments/{appointment_id}', {
+          params: { path: { appointment_id: id } },
+          body: { status },
+        }),
+      ),
+    onMutate: async ({ id }) => {
+      await client.cancelQueries({ queryKey: queryKeys.pendingReview })
+      const previous = client.getQueryData<PendingReview>(queryKeys.pendingReview)
+      if (previous) {
+        const items = previous.items.filter((a) => a.id !== id)
+        client.setQueryData<PendingReview>(queryKeys.pendingReview, {
+          count: items.length,
+          items,
+        })
+      }
+      return { previous }
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) client.setQueryData(queryKeys.pendingReview, context.previous)
+    },
+    onSettled: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.agenda })
+    },
+  })
+}
+
+/**
+ * Registra que el barbero abrió el recordatorio de WhatsApp. Actualiza la fila en caché con la
+ * respuesta para que el botón cambie a «Recordatorio enviado hace X» sin esperar al sondeo.
+ */
+export function useReminderSent(date: string) {
+  const client = useQueryClient()
+  return useMutation<MeAppointment, ApiError, string>({
+    mutationFn: (id) =>
+      unwrap(
+        api.POST('/api/v1/me/appointments/{appointment_id}/reminder-sent', {
+          params: { path: { appointment_id: id } },
+        }),
+      ),
+    onSuccess: (updated) => {
+      client.setQueryData<Agenda>([...queryKeys.agenda, date], (agenda) =>
+        agenda
+          ? {
+              ...agenda,
+              appointments: agenda.appointments.map((a) => (a.id === updated.id ? updated : a)),
+            }
+          : agenda,
+      )
     },
   })
 }
