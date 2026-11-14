@@ -63,4 +63,78 @@ jobs:
       - run: pnpm --filter web format:check
       - run: pnpm --filter web typecheck
       - run: pnpm --filter web test
+      # Contraste WCAG de los pares de color reales (lee design-system/tokens.json); falla con < 4.5:1.
+      - run: node scripts/check-contrast.mjs
+      - run: node --test scripts/*.test.mjs
+      # docs/textos.md se genera del código: si cambió un texto y no se regeneró, falla.
+      - run: pnpm --filter web texts:check
       - run: pnpm --filter web build
+      # Presupuesto: JS inicial <= 180 KB gzip y las áreas de barbero y admin fuera de ese paquete.
+      - run: pnpm --filter web size
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: imperio
+          POSTGRES_PASSWORD: imperio
+          POSTGRES_DB: imperio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U imperio -d imperio"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+      - run: pnpm install --frozen-lockfile
+      - run: (cd apps/api && uv sync --locked)
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      # Incluye el recorrido axe de todas las rutas (serious/critical rompen la prueba), teclado,
+      # zoom, PWA instalable y los metadatos del <head>.
+      - run: pnpm --filter web e2e
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: imperio
+          POSTGRES_PASSWORD: imperio
+          POSTGRES_DB: imperio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U imperio -d imperio"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+      - run: pnpm install --frozen-lockfile
+      - run: (cd apps/api && uv sync --locked)
+      # Móvil con estrangulamiento estándar sobre «/» y «/productos»: rendimiento >= 85,
+      # accesibilidad >= 95, buenas prácticas >= 90, SEO >= 90 y LCP < 2,5 s.
+      - run: pnpm --filter web lhci

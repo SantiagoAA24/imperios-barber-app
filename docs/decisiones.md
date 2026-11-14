@@ -230,3 +230,44 @@ Decisión:
 - **Diferencias con el diseño:** el selector dice «Esta semana / Este mes / Personalizado» (el diseño traía «Hoy / Semana / Mes»); no hay tarjeta «Ocupación» ni «Próximas citas de hoy» (el backend no las calcula: no estaban en el alcance); la tarjeta «Ingresos» muestra «Pendientes por cobrar» (`projected_cop`) en vez de «Según el precio de cada servicio»; «Clientes nuevos» reemplaza a «Ocupación».
 Motivo: cerrar los huecos sin cambiar el alcance del PR.
 Impacto: cierra la fase 7.
+
+## 2026-11-14 · Decisiones de la fase 8 (pulido)
+Contexto: dejar la app lista para usuarios reales sin funciones nuevas fuera de las listadas. Todo lo de abajo está **fuera de lo literalmente pedido** o es una elección donde el prompt dejaba margen.
+
+**Recordatorios y «por revisar» (API)**
+- **`POST /me/appointments/{id}/reminder-sent`** guarda `reminder_sent_at = now` y responde la cita (200). «Idempotente» se entendió como *repetirlo es seguro y deja la cita marcada*; cada llamada **mueve la hora al último envío** para que «Recordatorio enviado hace X» sea cierto al reenviar. Solo el barbero dueño (otro barbero, otro negocio o sin sesión: 404/401; admin: 403). Una cita que no está `booked` responde **409 `reminder_not_applicable`** (no estaba en el prompt; evita marcar canceladas o atendidas).
+- **`reminder_sent_at`** se añadió a `MeAppointmentOut` (la columna ya existía: sin migración). El cliente tipado se regeneró.
+- **`GET /me/appointments/pending-review` y `GET /admin/appointments/pending-review`:** `booked` con `ends_at < ahora − 2 h` y `ends_at ≥ ahora − 7 días`, calculado al consultar (sin tarea programada). Respuesta `{count, items}`, más antigua primero. El admin ve todo el negocio con el celular siempre parcial. Se marcan con los `PATCH` que ya existían (mismas reglas de tolerancia), así que no hay endpoint nuevo para eso. Prueba de consultas constantes (sin N+1) para el admin.
+- **Sin cola ni API de mensajería:** el recordatorio es un enlace `wa.me` que abre el barbero. `docs/arquitectura.md` (§2) sigue diciendo APScheduler y Cloud API «en la fase 2»: no cambió.
+
+**Recordatorios y «por revisar» (web)**
+- `whatsapp.ts` pasó de `features/barber/` a `lib/whatsapp.ts` (donde lo pedía el prompt) y conserva `whatsappUrl` (el botón «WhatsApp» genérico para escribirle al cliente). En una cita que cumple las condiciones aparecen **los dos botones**: «Recordar por WhatsApp» (mensaje fijo) y «WhatsApp» (mensaje libre). El de recordar es un **enlace real** (`target="_blank" rel="noopener noreferrer"`) con `onClick` que registra el envío, no un `window.open` después de una petición: así iOS no lo bloquea como ventana emergente.
+- «Hace X» usa `formatAgo` en `lib/format.ts` (un solo lugar para formatos). La tolerancia del mensaje sale de `GET /public/business` (`tolerance_min`).
+- Insignia: «1 cita por revisar» / «N citas por revisar» (singular cuando es 1; el prompt decía «N citas»). El número visible es `aria-hidden` y el texto completo va oculto para lectores. En el barbero va sobre la pestaña «Agenda» de la barra inferior (se ve en las tres pestañas); la lista está en **Mi agenda**. En el admin, sobre «Agenda» de la barra lateral y la lista arriba de **Agenda del día** (no en Semana).
+- Al marcar una cita por revisar, el foco pasa al título de la sección (o al `h1` si ya no queda ninguna) y un `role="status"` anuncia «Cita de X marcada como atendida.».
+
+**Accesibilidad**
+- Cada `<main>` lleva `id="contenido"` y `tabIndex=-1` (destino de «Saltar al contenido», que vive en `App`). `useDocumentTitle` se llama en cada pantalla; los títulos están en `docs/textos.md`. `ErrorBoundary` global **envuelve** `Providers` (fuera del router, por eso «Volver al inicio» es un `<a href="/">` real que recarga); `RouteBoundary` se conserva para los chunks de las áreas.
+- `ProductCard` recibe `headingLevel` (el catálogo usa `h2`); la casilla de consentimiento pasó de 20 a 24 px.
+- **Las E2E insertan citas con `psql`** (`e2e/helpers.ts › seedAppointment`) porque la API no deja crear citas en el pasado y «por revisar» exige citas viejas. Requiere el cliente `psql` (viene en los runners de GitHub y con PostgreSQL local).
+- El script de contraste **no modifica** `tokens.json`: si un par falla, propone el ajuste (misma tonalidad y saturación, menor cambio de luminosidad) y sale con error. Hoy los 20 pares cumplen; no se tocó ningún token. Los «extras» (otras superficies donde `tokens.json` promete legibilidad y `on-gold` sobre `danger`) también se evalúan.
+
+**Rendimiento y PWA**
+- **Dependencias nuevas (las dos pedidas):** `@lhci/cli` y `rollup-plugin-visualizer` (solo con `ANALYZE=1`). Nada más: las imágenes derivadas se generan con el Chromium de Playwright (`scripts/build-brand-assets.mjs`), no con `sharp`.
+- **Imagen del sello:** el PNG original (361 KB, 480 px) se mostraba a 44-132 px. `BrandSeal` usa ahora dos WebP (88 px y 264 px: 4,6 y 22,7 KB). `design-system/` no se tocó (sigue siendo la fuente).
+- **No existe `design-system/assets/Logo/logo.svg`:** los íconos, el favicon y la imagen para compartir salen del sello (foto del letrero). **TODO documentado** en `scripts/build-icons.mjs` y `scripts/build-brand-assets.mjs`: cuando exista el vector, sustituir el origen; las salidas no cambian.
+- **`og:image` y `og:url` necesitan URL absoluta:** el build lee `SITE_URL` (p. ej. `SITE_URL=https://citas.imperiobarber.co pnpm build`). Sin esa variable quedan relativas (sirve en local, pero WhatsApp no las resuelve). **Hay que ponerla en el hosting.**
+- **Lighthouse CI no usa `vite preview`:** no comprime y falsearía el rendimiento hacia abajo. `scripts/serve-dist.mjs` sirve `dist/` con brotli/gzip y caché larga para `/assets` (como un hosting real) y reenvía `/api`; `scripts/lhci-server.sh` levanta base sembrada + API + ese servidor. Mediana de 3 corridas por URL. Las cifras son de un entorno con CPU/red simulados: sirven para detectar regresiones, no son la experiencia de un celular real (para eso, `docs/qa-manual.md`).
+- Presupuesto de JS inicial: `pnpm --filter web size` (≤ 180 KB gzip y `BarberArea`/`AdminArea` como chunks aparte, sin textos propios de esas áreas en el inicial). Hoy: 88,9 KB.
+- Fuentes: se precargan solo Cormorant 600 (título) e Inter 400 (texto), con un plugin de Vite que busca sus nombres con hash en el bundle.
+- `robots.txt` bloquea `/admin`, `/barbero` y `/cita/` (como pedía), pero **no impide** que un enlace compartido se indexe; falta un `noindex` por página (pendiente, ver `docs/qa-accesibilidad.md` P3).
+
+**Textos** (`docs/textos.md`, generado: `pnpm --filter web texts`; CI falla si queda desactualizado)
+- Cambios de redacción: «reservas nuevas» → «citas nuevas»; «siguen reservadas» → «siguen agendadas»; «reservamos el bloque» → «apartamos el bloque»; «Mantener la cita» → «Mantener cita» (igual que en el barbero); «Ir al inicio» → «Volver al inicio»; estados vacíos: «No hay citas para este día. Crea una con «Nueva cita».» (admin) y «No tienes citas para este día.» (barbero, ya trae el botón «Registrar un turno sin cita»); y se corrigió una **promesa falsa**: «Con celular, el cliente recibe el recordatorio por WhatsApp» (nada se envía solo) → «Con celular podrás recordarle su cita por WhatsApp.».
+- Se borró `app/pages/ComingSoon.tsx` (código muerto, sin referencias).
+
+**CI y herramientas**
+- Jobs nuevos: `e2e` (PostgreSQL de servicio + Playwright) y `lighthouse`; el job `web` suma contraste, pruebas de `scripts/`, `texts:check` y `size`. `make lint` incluye `texts:check` y el contraste; `make test`, las pruebas de `scripts/`; `make lhci`.
+- `pnpm install` en este entorno dejó sin enlazar `tslib` para `intl-messageformat` (Lighthouse fallaba con `Cannot find module 'tslib'`); se arregló con `pnpm install --frozen-lockfile --force`. No cambia el lockfile.
+Motivo: cerrar la fase 8 sin cambiar reglas de negocio.
+Impacto: cierra el plan de implementación; lo pendiente está en `docs/qa-accesibilidad.md` (P1-P5) y `docs/qa-manual.md`.

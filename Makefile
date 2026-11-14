@@ -1,4 +1,4 @@
-.PHONY: db-up db-down dev dev-api dev-web test lint types e2e
+.PHONY: db-up db-down dev dev-api dev-web test lint types e2e lhci
 
 db-up:
 	docker compose up -d --wait db
@@ -22,6 +22,7 @@ dev: db-up
 test:
 	cd apps/api && uv run pytest -q
 	pnpm --filter web test
+	node --test scripts/*.test.mjs
 
 lint:
 	cd apps/api && uv run ruff check . && uv run ruff format --check . && uv run mypy .
@@ -29,6 +30,8 @@ lint:
 	pnpm --filter web lint:colors
 	pnpm --filter web format:check
 	pnpm --filter web typecheck
+	pnpm --filter web texts:check
+	node scripts/check-contrast.mjs
 
 # Regenera todo lo derivado: tokens.css, openapi.json y el cliente tipado (schema.d.ts).
 types:
@@ -39,3 +42,7 @@ types:
 # E2E con Playwright: necesita PostgreSQL (make db-up). Recrea y siembra la base imperio_e2e.
 e2e:
 	pnpm --filter web e2e
+
+# Lighthouse CI (móvil, estrangulamiento estándar) sobre «/» y «/productos»: necesita PostgreSQL.
+lhci:
+	pnpm --filter web lhci
