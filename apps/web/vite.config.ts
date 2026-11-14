@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { VitePWA } from 'vite-plugin-pwa'
 import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
@@ -9,6 +10,17 @@ import { defineConfig } from 'vitest/config'
 const tokens = readFileSync('../../packages/tokens/src/tokens.css', 'utf8')
 const bg = tokens.match(/--color-bg:\s*(#[0-9a-fA-F]{6})/)?.[1]
 if (!bg) throw new Error('No se encontró --color-bg en packages/tokens/src/tokens.css')
+
+// Origen público de la app (p. ej. https://citas.imperiobarber.co), solo para las etiquetas de
+// compartir: og:image y og:url deben ser absolutas. Sin SITE_URL quedan relativas (válido en local).
+const siteUrl = (process.env.SITE_URL ?? '').replace(/\/$/, '')
+
+// Las dos fuentes que se ven arriba en «/» (el título en Cormorant 600 y el texto en Inter 400).
+// Precargarlas evita esperar al CSS para descubrirlas; las demás cargan cuando se necesitan.
+const PRELOADED_FONTS = [
+  /cormorant-garamond-latin-600-normal-.*\.woff2$/,
+  /inter-latin-400-normal-.*\.woff2$/,
+]
 
 export default defineConfig(({ mode }) => {
   // Las pruebas E2E levantan la API en otro puerto: API_PROXY_TARGET=http://localhost:8100.
@@ -21,6 +33,36 @@ export default defineConfig(({ mode }) => {
         name: 'theme-color-from-tokens',
         transformIndexHtml: (html: string) => html.replace('__THEME_COLOR__', bg),
       },
+      {
+        name: 'share-tags-and-font-preload',
+        transformIndexHtml: {
+          order: 'post',
+          handler(html: string, ctx: { bundle?: Record<string, unknown> }) {
+            const canonical = siteUrl
+              ? `<link rel="canonical" href="${siteUrl}/" />\n    <meta property="og:url" content="${siteUrl}/" />\n    `
+              : ''
+            const preloads = Object.keys(ctx.bundle ?? {})
+              .filter((file) => PRELOADED_FONTS.some((re) => re.test(file)))
+              .map(
+                (file) =>
+                  `<link rel="preload" href="/${file}" as="font" type="font/woff2" crossorigin />`,
+              )
+              .join('\n    ')
+            return html
+              .replaceAll('__SITE_URL__', siteUrl)
+              .replace('<!-- Aquí se inserta', `${canonical}${preloads}\n    <!-- Aquí se inserta`)
+          },
+        },
+      },
+      // Análisis del paquete: ANALYZE=1 pnpm --filter web build -> dist-stats/stats.html (treemap).
+      process.env.ANALYZE
+        ? visualizer({
+            filename: 'dist-stats/stats.html',
+            template: 'treemap',
+            gzipSize: true,
+            brotliSize: true,
+          })
+        : null,
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'script-defer',

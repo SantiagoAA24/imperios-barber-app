@@ -17,3 +17,6 @@ coverage/
 # Playwright
 test-results/
 playwright-report/
+dist-stats/
+lhci-report/
+.lighthouseci/

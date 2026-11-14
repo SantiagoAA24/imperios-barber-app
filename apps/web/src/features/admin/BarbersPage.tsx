@@ -18,6 +18,7 @@ import { isTransientError } from '../../lib/api/hooks'
 import type { AdminBarber, BarberConflict } from '../../lib/api/types'
 import { formatDayLong, formatTime } from '../../lib/format'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 type Credential = { name: string; password: string }
 
@@ -99,6 +100,7 @@ function Conflicts({ name, conflicts }: { name: string; conflicts: BarberConflic
 }
 
 export default function BarbersPage() {
+  useDocumentTitle('Barberos')
   const list = useAdminBarbers()
   const create = useCreateBarber()
   const update = useUpdateBarber()
@@ -179,7 +181,11 @@ export default function BarbersPage() {
   }
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <header className="flex flex-wrap items-end justify-between gap-14">
         <div className="flex flex-col gap-4">
           <h1 className="m-0 font-display text-h1 text-text">Barberos</h1>

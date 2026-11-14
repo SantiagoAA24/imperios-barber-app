@@ -7,12 +7,18 @@ import { ProductCard } from '../../components/ProductCard'
 import { Skeleton } from '../../components/Skeleton'
 import { isTransientError, useProducts } from '../../lib/api/hooks'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 export function CatalogPage() {
+  useDocumentTitle('Productos')
   const products = useProducts()
 
   return (
-    <main className="flex flex-col gap-[28px] px-20 pb-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-[28px] px-20 pb-36"
+    >
       <header className="flex flex-col gap-20 pt-20">
         <div className="flex items-center justify-between">
           <Link
@@ -58,6 +64,7 @@ export function CatalogPage() {
               description={product.description}
               priceCop={product.price_cop}
               imageUrl={product.image_url}
+              headingLevel={2}
               inStock={product.availability === 'in_stock'}
             />
           ))}

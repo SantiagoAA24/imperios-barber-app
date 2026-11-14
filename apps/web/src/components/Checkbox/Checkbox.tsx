@@ -30,8 +30,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           type="checkbox"
           aria-invalid={error ? true : undefined}
           aria-describedby={described}
-          // El área de 44 px la da el contenedor; la casilla se alinea con la primera línea.
-          className={cx('mt-[12px] size-[20px] shrink-0 cursor-pointer accent-gold', FOCUS_RING)}
+          // La casilla mide 24 px (mínimo WCAG 2.5.8) y el área de 44 px la da la etiqueta, que también activa.
+          className={cx('mt-[10px] size-[24px] shrink-0 cursor-pointer accent-gold', FOCUS_RING)}
         />
         <label htmlFor={inputId} className="cursor-pointer py-[10px] text-small text-text">
           {children}

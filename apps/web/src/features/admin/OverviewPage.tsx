@@ -12,6 +12,7 @@ import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
 import { RevenueChart } from './RevenueChart'
 import { monthRange, peakDay, periodTitle, validateCustomRange } from './overviewRange'
 import type { RangeMode } from './overviewRange'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const MODES: Array<{ value: RangeMode; label: string }> = [
   { value: 'week', label: 'Esta semana' },
@@ -75,6 +76,7 @@ function Cards({ data }: { data: AdminOverview }) {
 
 /** Resumen (admin-resumen.dc.html): cifras, ingresos por día, servicios y barberos. */
 export default function OverviewPage() {
+  useDocumentTitle('Resumen')
   const today = bogotaDay(new Date())
   const [mode, setMode] = useState<RangeMode>('week')
   const [custom, setCustom] = useState({ from: '', to: '' })
@@ -90,7 +92,11 @@ export default function OverviewPage() {
   const topMax = Math.max(1, ...(data?.top_services.map((s) => s.count) ?? [1]))
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <header className="flex flex-wrap items-end justify-between gap-14">
         <div className="flex flex-col gap-4">
           <h1 className="m-0 font-display text-h1 text-text">Resumen</h1>

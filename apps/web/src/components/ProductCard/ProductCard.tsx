@@ -9,6 +9,8 @@ export type ProductCardProps = {
   inStock: boolean
   /** Foto del producto; si es nula se muestra un marcador. */
   imageUrl?: string | null
+  /** Nivel del encabezado con el nombre; 2 cuando la lista cuelga directamente del h1 de la página. */
+  headingLevel?: 2 | 3
   className?: string
 }
 
@@ -19,8 +21,10 @@ export function ProductCard({
   priceCop,
   inStock,
   imageUrl,
+  headingLevel = 3,
   className,
 }: ProductCardProps) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3'
   return (
     <article
       className={cx(
@@ -29,7 +33,16 @@ export function ProductCard({
       )}
     >
       {imageUrl ? (
-        <img src={imageUrl} alt="" loading="lazy" className="block h-[150px] w-full object-cover" />
+        <img
+          src={imageUrl}
+          alt=""
+          // width/height reservan el espacio (sin saltos de diseño); el CSS la estira al ancho de la tarjeta.
+          width={300}
+          height={150}
+          loading="lazy"
+          decoding="async"
+          className="block h-[150px] w-full object-cover"
+        />
       ) : (
         <div className="flex h-[150px] flex-col items-center justify-center gap-8 bg-surface-muted text-gold">
           <BottleIcon size={36} />
@@ -37,7 +50,7 @@ export function ProductCard({
         </div>
       )}
       <div className="flex flex-1 flex-col gap-[6px] p-[12px]">
-        <h3 className="m-0 min-h-[40px] text-body-strong text-text">{name}</h3>
+        <Heading className="m-0 min-h-[40px] text-body-strong text-text">{name}</Heading>
         {description && <p className="m-0 text-caption text-text-muted">{description}</p>}
         <span className="mt-auto font-display text-price text-gold">{formatCOP(priceCop)}</span>
         <span

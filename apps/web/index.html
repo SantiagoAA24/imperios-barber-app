@@ -3,10 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Agenda tu cita en Imperio Barber." />
-    <meta name="theme-color" content="__THEME_COLOR__" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>Imperio Barber</title>
+    <meta
+      name="description"
+      content="Agenda tu cita en Imperio Barber. Sin registro y sin descargas: elige tu servicio, tu hora y listo."
+    />
+    <meta name="theme-color" content="__THEME_COLOR__" />
+    <!-- La app es oscura: así los campos, las barras de desplazamiento y el teclado también lo son. -->
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+    <!-- Al compartir el enlace (WhatsApp, redes). og:image debe ser absoluta: build con SITE_URL. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Imperio Barber" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:title" content="Imperio Barber — Agenda tu cita" />
+    <meta
+      property="og:description"
+      content="Reserva tu corte o tu barba en minutos, sin registro y sin descargas."
+    />
+    <meta property="og:image" content="__SITE_URL__/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Sello de Barbería Imperio y el texto Imperio Barber" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Aquí se inserta, solo en la compilación, el preload de las dos fuentes de arriba (vite.config.ts). -->
   </head>
   <body>
     <div id="root"></div>

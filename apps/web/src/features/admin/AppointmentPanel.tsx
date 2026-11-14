@@ -125,7 +125,7 @@ export function AppointmentPanel({
         </p>
         <div className="flex flex-col gap-10">
           <Button data-autofocus block onClick={() => setConfirmCancel(false)}>
-            Mantener la cita
+            Mantener cita
           </Button>
           <Button block variant="danger" onClick={() => void apply('cancelled')}>
             Sí, cancelar cita

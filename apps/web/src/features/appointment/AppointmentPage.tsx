@@ -26,6 +26,7 @@ import { formatDayLong, formatDuration, formatTime } from '../../lib/format'
 import { NETWORK_MESSAGE, RetryNotice } from '../shared/RetryNotice'
 import { appointmentIcs, downloadIcs } from './ics'
 import { ReschedulePanel } from './ReschedulePanel'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 type Tone = 'success' | 'danger' | 'muted'
 
@@ -70,12 +71,24 @@ function headerFor(status: PublicAppointment['status']) {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="flex flex-col gap-[28px] px-20 pt-36 pb-36">{children}</main>
+  return (
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-[28px] px-20 pt-36 pb-36"
+    >
+      {children}
+    </main>
+  )
 }
 
 function InvalidToken() {
   return (
-    <main className="flex flex-col items-center gap-14 px-20 py-36 text-center">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col items-center gap-14 px-20 py-36 text-center"
+    >
       <BrandSeal size={96} />
       <h1 className="m-0 font-display text-h1 text-text">No encontramos tu cita</h1>
       <p className="m-0 text-body text-text-muted">
@@ -89,6 +102,7 @@ function InvalidToken() {
 }
 
 export function AppointmentPage() {
+  useDocumentTitle('Tu cita')
   const { token = '' } = useParams()
   const appointment = useAppointment(token)
 
@@ -187,7 +201,11 @@ function AppointmentView({
   }
 
   return (
-    <main className="flex flex-col gap-[28px] px-20 pt-36 pb-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-[28px] px-20 pt-36 pb-36"
+    >
       <header className="flex flex-col items-center gap-10 text-center">
         <BrandSeal size={96} className="mb-8" />
         <div

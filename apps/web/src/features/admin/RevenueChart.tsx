@@ -55,7 +55,9 @@ export function RevenueChart({ days }: { days: RevenueDay[] }) {
                   width={barW}
                   height={h}
                   rx={3}
-                  className={isPeak ? 'fill-gold' : 'fill-gold-edge'}
+                  // Las barras son un gráfico (WCAG 1.4.11: ≥ 3:1). `gold-edge` (33 % de opacidad) daba 2,04:1
+                  // sobre `surface`; `line-strong` da 3,19:1 y el día pico sigue destacando en `gold`.
+                  className={isPeak ? 'fill-gold' : 'fill-line-strong'}
                 />
               )}
               {days.length <= SHOW_VALUES_UP_TO && (

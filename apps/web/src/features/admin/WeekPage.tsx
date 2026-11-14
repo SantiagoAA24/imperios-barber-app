@@ -26,6 +26,7 @@ import {
   weekStart,
 } from './agendaLayout'
 import { NewAppointmentPanel } from './NewAppointmentPanel'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const DAY_MIN_PX = 120
@@ -38,6 +39,7 @@ const LANE_TONE = [
 
 /** Agenda semanal (admin-semana.dc.html): siete columnas de día, un carril por barbero. */
 export default function WeekPage() {
+  useDocumentTitle('Agenda de la semana')
   const [params, setParams] = useSearchParams()
   const today = bogotaDay(new Date())
   const raw = params.get('fecha')
@@ -75,7 +77,11 @@ export default function WeekPage() {
   const subtitle = `semana ${formatWeekRange(start, end)} · ${items.length} ${items.length === 1 ? 'cita' : 'citas'}`
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <AgendaHeader
         view="week"
         date={days.includes(today) ? today : start}

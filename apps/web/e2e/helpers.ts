@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { expect } from '@playwright/test'
 import type { APIRequestContext, Locator, Page } from '@playwright/test'
 
@@ -25,6 +26,11 @@ const timeFormat = new Intl.DateTimeFormat('en-US', {
 /** Día de calendario en Bogotá, `offset` días después de hoy (AAAA-MM-DD). */
 export function bogotaDay(offset = 0): string {
   return dayFormat.format(new Date(Date.now() + offset * 86_400_000))
+}
+
+/** Día de calendario en Bogotá de un instante ISO (AAAA-MM-DD). */
+export function bogotaDayOf(iso: string): string {
+  return dayFormat.format(new Date(iso))
 }
 
 /** '10:30 am', como lo muestra la app. */
@@ -117,4 +123,68 @@ export async function pickFirstSlot(page: Page, service: string, barber = 'Cualq
   const time = (await first.textContent()) ?? ''
   await first.click()
   return time
+}
+
+/** Base de datos de las E2E (la crea y siembra scripts/e2e-setup.sh). */
+const E2E_DB_URL = 'postgresql://imperio:imperio@localhost:5432/imperio_e2e'
+
+/**
+ * Inserta (con SQL) una cita de Barbero 1 empezando dentro de `startsInHours` horas (negativo = en
+ * el pasado). La API no deja crear citas en el pasado ni pasar de reserva a «vencida» sin esperar,
+ * y justo eso es lo que «Citas por revisar» y los recordatorios tienen que mostrar.
+ * Devuelve el instante ISO de inicio.
+ */
+export function seedAppointment(options: {
+  startsInHours: number
+  clientName: string
+  status?: 'booked' | 'attended' | 'no_show' | 'cancelled'
+  phone?: string
+  /** Sin desplazar la hora aunque choque con otra cita (por defecto se desplaza hasta encontrar hueco). */
+  exact?: boolean
+}): string {
+  const { startsInHours, clientName, status = 'booked' } = options
+  const phone = options.phone ?? `+57300${String(Math.floor(Math.random() * 1e7)).padStart(7, '0')}`
+  // Barbero 1 no puede tener dos citas a la vez (restricción de exclusión): si otra prueba dejó
+  // una a esa hora, se corre 37 minutos más lejos del presente hasta encontrar hueco.
+  const direction = startsInHours < 0 ? -1 : 1
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const minutes = Math.round(startsInHours * 60) + direction * attempt * 37
+    const start = `date_trunc('minute', now()) + interval '${minutes} minutes'`
+    const sql = `
+      WITH c AS (
+        INSERT INTO client (business_id, name, phone_e164)
+        SELECT b.business_id, '${clientName}', '${phone}'
+        FROM barber b WHERE b.display_name = 'Barbero 1'
+        ON CONFLICT (business_id, phone_e164) WHERE phone_e164 IS NOT NULL
+          DO UPDATE SET name = EXCLUDED.name
+        RETURNING id, business_id
+      )
+      INSERT INTO appointment (business_id, barber_id, client_id, service_id, starts_at, ends_at,
+                               status, source, price_cop, duration_min, manage_token_hash)
+      SELECT c.business_id, b.id, c.id, s.id, ${start}, ${start} + interval '30 minutes',
+             '${status}', 'manual', s.price_cop, 30, md5(random()::text)
+      FROM c, barber b, service s
+      WHERE b.display_name = 'Barbero 1' AND s.name = 'Corte básico' AND s.business_id = c.business_id
+      RETURNING starts_at;`
+    try {
+      const out = execFileSync('psql', [E2E_DB_URL, '-v', 'ON_ERROR_STOP=1', '-tA', '-c', sql], {
+        env: { ...process.env, PGPASSWORD: 'imperio' },
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      return new Date(out.split('\n')[0]?.trim() ?? '').toISOString()
+    } catch (error) {
+      const overlap = String((error as { stderr?: unknown }).stderr).includes(
+        'appointment_no_barber_overlap',
+      )
+      if (!overlap || options.exact) throw error
+    }
+  }
+  throw new Error('No se encontró hueco libre para sembrar la cita')
+}
+
+/** Cita «pendiente» que terminó hace `daysAgo` días (por revisar). Devuelve el nombre del cliente. */
+export function seedOverdueAppointment(daysAgo = 3, clientName = 'Cliente por revisar'): string {
+  seedAppointment({ startsInHours: -24 * daysAgo, clientName })
+  return clientName
 }

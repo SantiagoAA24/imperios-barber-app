@@ -18,6 +18,7 @@ import {
   initials,
 } from './clientFormat'
 import { useDebounced } from './useDebounced'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 const SEARCH_DELAY_MS = 300
 const MAX_NOTES = 500
@@ -37,6 +38,7 @@ function shortDay(iso: string | null): string {
 
 /** Clientes (admin-clientes.dc.html): búsqueda, filtros, tabla paginada y detalle con notas. */
 export default function ClientsPage() {
+  useDocumentTitle('Clientes')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<ClientFilter>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -49,7 +51,11 @@ export default function ClientsPage() {
   const subtitle = list.isSuccess ? `${total} ${total === 1 ? 'cliente' : 'clientes'}` : 'Clientes'
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <header className="flex flex-col gap-4">
         <h1 className="m-0 font-display text-h1 text-text">Clientes</h1>
         <p className="m-0 text-small text-text-muted">{subtitle}</p>

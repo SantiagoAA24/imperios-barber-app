@@ -1,0 +1,7 @@
+# Solo la pantalla de agendar y el catálogo son públicas para buscadores.
+# El personal (/admin, /barbero) y las citas de cada cliente (/cita/<token>) no se indexan.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /barbero
+Disallow: /cita/

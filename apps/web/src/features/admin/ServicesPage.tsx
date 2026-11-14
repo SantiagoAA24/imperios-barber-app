@@ -31,6 +31,7 @@ import {
 } from './serviceForm'
 import type { ServiceDraft, ServiceErrors } from './serviceForm'
 import { useUnsavedGuard } from './useUnsavedGuard'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 type Panel = { mode: 'new' } | { mode: 'edit'; id: string } | null
 
@@ -47,6 +48,7 @@ function errorMessage(error: unknown): string {
 }
 
 export default function ServicesPage() {
+  useDocumentTitle('Administrar servicios')
   const list = useAdminServices()
   const reorder = useReorderServices()
   const update = useUpdateService()
@@ -99,7 +101,11 @@ export default function ServicesPage() {
   }
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <CatalogHeader
         action={
           <Button id="agregar-servicio" icon={<PlusIcon />} onClick={() => open({ mode: 'new' })}>
@@ -428,8 +434,8 @@ function ServicePanel({ service, resources, onDirtyChange, onClose, onDone }: Pa
         </div>
         {service && (
           <p className="m-0 text-caption text-text-muted">
-            Cambiar el precio o la duración solo afecta las reservas nuevas; las citas que ya
-            existen conservan los suyos.
+            Cambiar el precio o la duración solo afecta las citas nuevas; las citas que ya existen
+            conservan los suyos.
           </p>
         )}
         {serverError && <Notice tone="danger">{serverError}</Notice>}

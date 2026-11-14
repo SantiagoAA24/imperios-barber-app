@@ -7,6 +7,7 @@ import { Notice } from '../../components/Notice'
 import { TextField } from '../../components/TextField'
 import { ApiError } from '../../lib/api/client'
 import { homeForRole, useLogin, useMe } from '../../lib/api/auth'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 function messageFor(error: unknown): string {
   if (error instanceof ApiError) return error.message
@@ -14,6 +15,7 @@ function messageFor(error: unknown): string {
 }
 
 export function Login() {
+  useDocumentTitle('Ingresar')
   const navigate = useNavigate()
   const me = useMe()
   const login = useLogin()
@@ -38,7 +40,7 @@ export function Login() {
   }
 
   return (
-    <main className="flex flex-col gap-36 px-20 py-36">
+    <main id="contenido" tabIndex={-1} className="outline-none flex flex-col gap-36 px-20 py-36">
       <div className="flex flex-col items-center gap-14 text-center">
         <BrandSeal size={96} />
         <h1 className="m-0 font-display text-h1 text-text">Ingresar</h1>

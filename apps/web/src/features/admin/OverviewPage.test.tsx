@@ -72,6 +72,12 @@ describe('Resumen (admin)', () => {
     expect(chart.tagName.toLowerCase()).toBe('svg')
     expect(chart.querySelectorAll('rect')).toHaveLength(3) // los días en cero no dibujan barra
     expect(chart.textContent).toContain('$120.000')
+    // WCAG 1.4.11: las barras deben contrastar 3:1 con la tarjeta. Con `gold-edge` (transparente)
+    // daban 2,04:1; el día pico va en `gold` y el resto en `line-strong` (3,19:1).
+    const fills = [...chart.querySelectorAll('rect')].map((r) => r.getAttribute('class'))
+    expect(fills.some((c) => c?.includes('fill-gold-edge'))).toBe(false)
+    expect(fills.filter((c) => c === 'fill-gold')).toHaveLength(1)
+    expect(fills.filter((c) => c === 'fill-line-strong')).toHaveLength(2)
     expect(screen.getByText('Pico: sábado')).toBeTruthy()
     // Tabla equivalente: visualmente oculta pero con los siete días, incluso los de cero.
     const table = container.querySelector('.sr-only table') as HTMLElement

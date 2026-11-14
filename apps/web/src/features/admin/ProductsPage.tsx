@@ -37,6 +37,7 @@ import {
 import type { ProductDraft, ProductErrors } from './productForm'
 import { moveId } from './serviceForm'
 import { useUnsavedGuard } from './useUnsavedGuard'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 type Panel = { mode: 'new' } | { mode: 'edit'; id: string } | null
 
@@ -53,6 +54,7 @@ function errorMessage(error: unknown): string {
 }
 
 export default function ProductsPage() {
+  useDocumentTitle('Administrar productos')
   const list = useAdminProducts()
   const reorder = useReorderProducts()
   const update = useUpdateProduct()
@@ -104,7 +106,11 @@ export default function ProductsPage() {
   }
 
   return (
-    <main className="flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-20 px-20 py-20 md:px-36 md:py-36"
+    >
       <CatalogHeader
         action={
           <Button id="agregar-producto" icon={<PlusIcon />} onClick={() => open({ mode: 'new' })}>

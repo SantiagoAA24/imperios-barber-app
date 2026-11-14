@@ -1,4 +1,7 @@
-import sello from '../../../../../design-system/assets/Logo/imperio-sello.png'
+// Derivados del sello de design-system/assets/Logo (pnpm --filter web assets): el PNG original
+// pesa ~360 KB y aquí se muestra a 44-132 px.
+import sello88 from '../../assets/sello-88.webp'
+import sello264 from '../../assets/sello-264.webp'
 import { cx } from '../classes'
 
 export type BrandSealProps = {
@@ -18,7 +21,8 @@ export function BrandSeal({
 }: BrandSealProps) {
   return (
     <img
-      src={sello}
+      // 44 px a 2x = 88; 96 y 132 px salen de la versión de 264 (132 px a 2x).
+      src={size === 44 ? sello88 : sello264}
       alt={alt}
       width={size}
       height={size}

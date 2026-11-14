@@ -58,7 +58,11 @@ export default function UiGallery() {
 
   return (
     <div className="min-h-dvh bg-bg">
-      <main className="mx-auto flex w-[390px] flex-col gap-36 px-20 py-36">
+      <main
+        id="contenido"
+        tabIndex={-1}
+        className="outline-none mx-auto flex w-[390px] flex-col gap-36 px-20 py-36"
+      >
         <h1 className="m-0 font-display text-h1 text-text">Componentes</h1>
 
         <Block title="Button">

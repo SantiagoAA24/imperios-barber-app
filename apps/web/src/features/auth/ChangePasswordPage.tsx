@@ -7,6 +7,7 @@ import { Notice } from '../../components/Notice'
 import { TextField } from '../../components/TextField'
 import { homeForRole, useChangePassword, useMe } from '../../lib/api/auth'
 import { ApiError } from '../../lib/api/client'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 export const MIN_PASSWORD = 10
 
@@ -14,6 +15,7 @@ type Problems = { current?: string; next?: string; repeat?: string }
 
 /** Cambio de la clave temporal: mientras esté pendiente, es lo único que el personal puede usar. */
 export function ChangePasswordPage() {
+  useDocumentTitle('Cambiar clave')
   const navigate = useNavigate()
   const me = useMe()
   const change = useChangePassword()
@@ -56,7 +58,7 @@ export function ChangePasswordPage() {
       : 'No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.'
 
   return (
-    <main className="flex flex-col gap-36 px-20 py-36">
+    <main id="contenido" tabIndex={-1} className="outline-none flex flex-col gap-36 px-20 py-36">
       <div className="flex flex-col items-center gap-14 text-center">
         <BrandSeal size={96} />
         <h1 className="m-0 font-display text-h1 text-text">Crea tu clave</h1>

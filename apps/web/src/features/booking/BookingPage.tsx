@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BarberPill } from '../../components/BarberPill'
 import { BrandSeal } from '../../components/BrandSeal'
 import { Button } from '../../components/Button'
+import { cx, FOCUS_RING } from '../../components/classes'
 import { Checkbox } from '../../components/Checkbox'
 import { UsersIcon } from '../../components/icons'
 import { Notice } from '../../components/Notice'
@@ -31,11 +32,13 @@ import { SlotConflict } from './SlotConflict'
 import { SlotPicker } from './SlotPicker'
 import { useSlotPicker } from './useSlotPicker'
 import { cleanName, nationalPhone, validateName, validatePhone } from './validators'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 type FieldErrors = { name?: string; phone?: string; consent?: string }
 type FormNotice = { message: string; retry: boolean }
 
 export function BookingPage() {
+  useDocumentTitle('Agendar cita')
   const navigate = useNavigate()
   const client = useQueryClient()
   const services = useServices()
@@ -158,7 +161,11 @@ export function BookingPage() {
     : ''
 
   return (
-    <main className="flex flex-col gap-36 px-20 pb-[220px]">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-36 px-20 pb-[220px]"
+    >
       <header className="flex flex-col gap-14 pt-20">
         <div className="flex items-center justify-between gap-10">
           <div className="flex items-center gap-10">
@@ -248,7 +255,7 @@ export function BookingPage() {
             hasService={serviceId !== null}
             note={
               service
-                ? `Tu servicio dura aprox. ${formatDuration(service.duration_min)}; reservamos el bloque completo.`
+                ? `Tu servicio dura aprox. ${formatDuration(service.duration_min)}; apartamos el bloque completo.`
                 : undefined
             }
             onDay={() => clearFeedback()}
@@ -306,7 +313,7 @@ export function BookingPage() {
               href="/privacidad"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gold underline underline-offset-2"
+              className={cx('text-gold underline underline-offset-2', FOCUS_RING)}
             >
               Leer la política
               <span className="sr-only"> (se abre en otra pestaña)</span>

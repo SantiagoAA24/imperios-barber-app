@@ -5,6 +5,8 @@ import { ChangePasswordPage } from '../features/auth/ChangePasswordPage'
 import { Login } from '../features/auth/Login'
 import { BookingPage } from '../features/booking/BookingPage'
 import { CatalogPage } from '../features/catalog/CatalogPage'
+import { ErrorBoundary } from './ErrorBoundary'
+import { SkipLink } from './SkipLink'
 import { PublicLayout } from './layouts/PublicLayout'
 import { NotFound } from './pages/NotFound'
 import { Offline } from './pages/Offline'
@@ -82,8 +84,11 @@ export function AppRoutes() {
 
 export function App() {
   return (
-    <Providers>
-      <AppRoutes />
-    </Providers>
+    <ErrorBoundary>
+      <Providers>
+        <SkipLink />
+        <AppRoutes />
+      </Providers>
+    </ErrorBoundary>
   )
 }

@@ -3,6 +3,7 @@
 // del responsable antes de salir a producción. Quita esta marca solo cuando esté aprobado.
 
 import { Link } from 'react-router-dom'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -14,8 +15,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function Privacy() {
+  useDocumentTitle('Política de privacidad')
   return (
-    <main className="flex flex-col gap-[28px] px-20 py-36">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="outline-none flex flex-col gap-[28px] px-20 py-36"
+    >
       <div className="flex flex-col gap-14">
         <p
           role="note"
@@ -74,7 +80,7 @@ export function Privacy() {
 
       <Link
         to="/"
-        className="text-body-strong text-gold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-gold"
+        className="inline-flex min-h-touch items-center text-body-strong text-gold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-gold"
       >
         Volver a agendar
       </Link>
