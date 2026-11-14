@@ -26,6 +26,7 @@ from app.schemas.admin import (
     AdminAgendaOut,
     AdminAppointmentCreateIn,
     AdminAppointmentOut,
+    AdminPendingReviewOut,
     AgendaBarberOut,
     AgendaClientOut,
     AgendaServiceOut,
@@ -131,6 +132,19 @@ def list_appointments(
         day_start=day_start,
         day_end=day_end,
     )
+
+
+def pending_review(session: Session, business: Business, now: datetime) -> AdminPendingReviewOut:
+    rows = session.execute(
+        select(Appointment, Barber, Client, Service)
+        .join(Barber, Barber.id == Appointment.barber_id)
+        .join(Client, Client.id == Appointment.client_id)
+        .join(Service, Service.id == Appointment.service_id)
+        .where(*barber_panel.pending_review_filters(business, now))  # type: ignore[arg-type]
+        .order_by(Appointment.starts_at, Barber.display_name, Appointment.id)
+    ).all()
+    items = [_out(business, a, b, c, s, now) for a, b, c, s in rows]
+    return AdminPendingReviewOut(count=len(items), items=items)
 
 
 def get_one(

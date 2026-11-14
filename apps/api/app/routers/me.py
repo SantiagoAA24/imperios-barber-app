@@ -21,6 +21,7 @@ from app.schemas.me import (
     MeCreateAppointmentIn,
     NextFreeOut,
     OwnAvailabilityOut,
+    PendingReviewOut,
     ScheduleIn,
     ScheduleOut,
     TimeOffCreatedOut,
@@ -73,6 +74,27 @@ def list_appointments(
     return barber_panel.day_agenda(
         session, business, barber, day, include_cancelled=include_cancelled, now=now
     )
+
+
+@router.get("/appointments/pending-review", response_model=PendingReviewOut)
+def pending_review(
+    business: CurrentBusiness, session: DbSession, barber: CurrentBarber, now: Now
+) -> PendingReviewOut:
+    """Citas propias en 'booked' que terminaron hace más de 2 horas (últimos 7 días)."""
+    return barber_panel.pending_review(session, business, barber, now)
+
+
+@router.post("/appointments/{appointment_id}/reminder-sent", response_model=MeAppointmentOut)
+def reminder_sent(
+    appointment_id: uuid.UUID,
+    business: CurrentBusiness,
+    session: DbSession,
+    barber: CurrentBarber,
+    now: Now,
+) -> MeAppointmentOut:
+    result = barber_panel.mark_reminder_sent(session, business, barber, appointment_id, now)
+    session.commit()
+    return result
 
 
 @router.patch("/appointments/{appointment_id}", response_model=MeAppointmentOut)

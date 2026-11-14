@@ -16,6 +16,7 @@ from app.schemas.admin import (
     AdminAppointmentOut,
     AdminAppointmentPatchIn,
     AdminBarberListOut,
+    AdminPendingReviewOut,
     AdminProductListOut,
     AdminProductOut,
     AdminServiceListOut,
@@ -214,6 +215,14 @@ def list_appointments(
     return admin_agenda.list_appointments(
         session, business, from_, to, barber_id, include_cancelled, now
     )
+
+
+@router.get("/appointments/pending-review", response_model=AdminPendingReviewOut)
+def pending_review(
+    business: CurrentBusiness, user: AdminUser, session: DbSession, now: Now
+) -> AdminPendingReviewOut:
+    """Citas de todo el negocio en 'booked' que terminaron hace más de 2 horas (7 días)."""
+    return admin_agenda.pending_review(session, business, now)
 
 
 @router.post("/appointments", response_model=AdminAppointmentOut, status_code=201)

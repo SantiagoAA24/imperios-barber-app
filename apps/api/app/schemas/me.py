@@ -36,6 +36,8 @@ class MeAppointmentOut(BaseModel):
     service: MeServiceOut
     client: MeClientOut
     is_overdue: bool
+    # Última vez que el barbero abrió el recordatorio por WhatsApp (null si nunca).
+    reminder_sent_at: datetime | None
 
 
 class DaySummary(BaseModel):
@@ -50,6 +52,13 @@ class AgendaOut(BaseModel):
     date: str
     appointments: list[MeAppointmentOut]
     summary: DaySummary
+
+
+class PendingReviewOut(BaseModel):
+    """Citas que siguen en 'booked' mucho después de terminar: alguien debe marcarlas."""
+
+    count: int
+    items: list[MeAppointmentOut]
 
 
 class UpdateStatusIn(BaseModel):

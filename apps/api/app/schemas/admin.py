@@ -289,6 +289,11 @@ class AdminAppointmentOut(BaseModel):
     is_overdue: bool
 
 
+class AdminPendingReviewOut(BaseModel):
+    count: int
+    items: list[AdminAppointmentOut]
+
+
 class AdminAgendaOut(BaseModel):
     items: list[AdminAppointmentOut]
     # Rejilla sugerida: inicio mínimo y cierre máximo de los horarios de los barberos activos

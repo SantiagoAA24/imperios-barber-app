@@ -38,6 +38,7 @@ from app.schemas.me import (
     MeAppointmentOut,
     MeClientOut,
     MeServiceOut,
+    PendingReviewOut,
 )
 from app.services.booking import (
     LOST_RACE,
@@ -51,6 +52,10 @@ from app.services.booking import (
 )
 
 ATTEND_EARLY_MIN = 15
+# «Citas por revisar»: siguen en 'booked' y terminaron hace más de 2 horas, dentro de los últimos
+# 7 días. Se calcula al consultar; no hay tarea programada que las cierre.
+REVIEW_AFTER = timedelta(hours=2)
+REVIEW_WINDOW = timedelta(days=7)
 IN_PERSON_CONSENT_NOTE = "Consentimiento recogido en persona."
 MAX_NOTE = 200
 
@@ -132,6 +137,7 @@ def present(
             phone_e164=client.phone_e164 if needs_contact else None,
         ),
         is_overdue=is_overdue(business, appointment, now),
+        reminder_sent_at=appointment.reminder_sent_at,
     )
 
 
@@ -186,6 +192,64 @@ def day_agenda(
         appointments=[present(business, a, c, s, now) for a, c, s in rows],
         summary=summary,
     )
+
+
+def pending_review_filters(business: Business, now: datetime) -> tuple[object, ...]:
+    """Condiciones SQL de «por revisar»; las comparten el panel del barbero y el del admin."""
+    return (
+        Appointment.business_id == business.id,
+        Appointment.status == AppointmentStatus.booked,
+        Appointment.ends_at < now - REVIEW_AFTER,
+        Appointment.ends_at >= now - REVIEW_WINDOW,
+    )
+
+
+def pending_review(
+    session: Session, business: Business, barber: Barber, now: datetime
+) -> PendingReviewOut:
+    rows = session.execute(
+        select(Appointment, Client, Service)
+        .join(Client, Client.id == Appointment.client_id)
+        .join(Service, Service.id == Appointment.service_id)
+        .where(*pending_review_filters(business, now), Appointment.barber_id == barber.id)  # type: ignore[arg-type]
+        .order_by(Appointment.starts_at, Appointment.id)
+    ).all()
+    items = [present(business, a, c, s, now) for a, c, s in rows]
+    return PendingReviewOut(count=len(items), items=items)
+
+
+# --- recordatorio por WhatsApp ----------------------------------------------------------------
+
+
+def mark_reminder_sent(
+    session: Session,
+    business: Business,
+    barber: Barber,
+    appointment_id: uuid.UUID,
+    now: datetime,
+) -> MeAppointmentOut:
+    """Guarda cuándo el barbero abrió el recordatorio. Repetirlo es seguro: deja la cita marcada
+    y solo mueve la hora al último reenvío («Recordatorio enviado hace X»)."""
+    appointment = session.scalar(
+        select(Appointment)
+        .where(
+            Appointment.id == appointment_id,
+            Appointment.business_id == business.id,
+            Appointment.barber_id == barber.id,
+        )
+        .with_for_update()
+    )
+    if appointment is None:
+        raise ApiError(404, "appointment_not_found", "No encontramos esta cita.")
+    if appointment.status != AppointmentStatus.booked:
+        raise ApiError(
+            409,
+            "reminder_not_applicable",
+            f"Esta cita ya está {STATUS_WORDS[appointment.status]}; no lleva recordatorio.",
+        )
+    appointment.reminder_sent_at = now
+    session.flush()
+    return _present_one(session, business, appointment, now)
 
 
 # --- cambiar estado ---------------------------------------------------------------------------
